@@ -1,79 +1,137 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Mic2, Camera, Calendar, Play, Pause, CheckCircle, AlertTriangle, MapPin } from 'lucide-react';
+// Importamos los iconos (Asegúrate de instalarlos en el Paso 3)
+import { Users, Mic2, Camera, Calendar, Play, Pause, CheckCircle, MapPin, AlertTriangle, Save } from 'lucide-react';
 
-// --- DATOS INICIALES (Simulando Base de Datos) ---
-const VIPS_INICIALES = [
+// --- DATOS INICIALES ---
+const VIPS_DEFAULT = [
   { id: 1, nombre: "Daniela Norambuena", cargo: "Alcaldesa", estado: "pendiente" },
   { id: 2, nombre: "Cristóbal Juliá", cargo: "Gobernador Regional", estado: "pendiente" },
   { id: 3, nombre: "Galo Luna", cargo: "Delegado Presidencial", estado: "pendiente" },
 ];
 
-// --- COMPONENTE PRINCIPAL ---
 export default function SerenitoApp() {
-  const [rol, setRol] = useState('secretaria'); // Rol por defecto
+  const [rol, setRol] = useState('secretaria'); 
   const [eventos, setEventos] = useState([]);
-  const [vips, setVips] = useState(VIPS_INICIALES);
+  const [vips, setVips] = useState(VIPS_DEFAULT);
   const [eventoActivo, setEventoActivo] = useState(null);
 
-  // Función para agregar eventos (Secretaría)
-  const agregarEvento = (nuevoEvento) => {
-    const eventoConId = { ...nuevoEvento, id: Date.now() };
-    setEventos([eventoConId, ...eventos]);
-    if (!eventoActivo) setEventoActivo(eventoConId); // Activa el primero automáticamente
+  // Acción: Secretaría crea evento
+  const agregarEvento = (nuevo) => {
+    const ev = { ...nuevo, id: Date.now() };
+    setEventos([ev, ...eventos]);
+    if (!eventoActivo) setEventoActivo(ev); // El primero se activa automático
   };
 
-  // Función Check-In (Protocolo)
+  // Acción: Protocolo hace Check-In
   const toggleCheckIn = (id) => {
-    setVips(vips.map(vip => 
-      vip.id === id ? { ...vip, estado: vip.estado === 'pendiente' ? 'presente' : 'pendiente' } : vip
-    ));
+    setVips(vips.map(v => v.id === id ? { ...v, estado: v.estado === 'pendiente' ? 'presente' : 'pendiente' } : v));
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans pb-20">
+    <div className="min-h-screen pb-20 font-sans">
       
-      {/* HEADER SUPERIOR (Siempre visible) */}
-      <header className="bg-blue-900 text-white p-6 rounded-b-3xl shadow-xl sticky top-0 z-50">
-        <div className="flex justify-between items-center">
+      {/* HEADER SUPERIOR (Sticky) */}
+      <header className="bg-muni-azul text-white p-6 rounded-b-[2rem] shadow-xl sticky top-0 z-50">
+        <div className="flex justify-between items-center max-w-2xl mx-auto">
           <div>
-            <h1 className="text-2xl font-black tracking-tighter">S.E.R.E.N.I.T.O.</h1>
-            <p className="text-[10px] uppercase tracking-widest text-blue-200 opacity-80">Inteligencia Territorial</p>
+            <h1 className="text-3xl font-black tracking-tighter">S.E.R.E.N.I.T.O.</h1>
+            <div className="flex items-center gap-2 opacity-80">
+              <span className="text-[10px] uppercase tracking-widest bg-white/20 px-2 py-0.5 rounded">Inteligencia Territorial</span>
+            </div>
           </div>
-          {/* Selector de ROLES (Solo para demo) */}
-          <select 
-            value={rol} 
-            onChange={(e) => setRol(e.target.value)}
-            className="text-xs bg-blue-800 text-white p-2 rounded-lg border border-blue-600 outline-none"
-          >
-            <option value="secretaria">👩‍💼 Secretaría</option>
-            <option value="protocolo">👠 Protocolo</option>
-            <option value="tecnico">🎚️ Técnico</option>
-            <option value="prensa">📸 Prensa</option>
-          </select>
+          
+          {/* SELECTOR DE ROLES (Simulación) */}
+          <div className="flex flex-col items-end">
+            <label className="text-[10px] uppercase font-bold opacity-70 mb-1">Vista Actual:</label>
+            <select 
+              value={rol} 
+              onChange={(e) => setRol(e.target.value)}
+              className="text-xs bg-white text-muni-azul font-bold p-2 rounded-lg outline-none shadow-lg border-2 border-transparent focus:border-muni-oro"
+            >
+              <option value="secretaria">👩‍💼 Secretaría</option>
+              <option value="protocolo">👠 Protocolo</option>
+              <option value="tecnico">🎚️ Técnico</option>
+              <option value="prensa">📸 Prensa</option>
+            </select>
+          </div>
         </div>
       </header>
 
-      {/* CUERPO PRINCIPAL SEGÚN ROL */}
-      <main className="p-4 max-w-lg mx-auto mt-4">
+      {/* CONTENIDO PRINCIPAL */}
+      <main className="p-4 max-w-xl mx-auto mt-4 space-y-6">
         
-        {/* VISTA SECRETARÍA */}
+        {/* --- VISTA SECRETARÍA --- */}
         {rol === 'secretaria' && (
-          <VistaSecretaria onGuardar={agregarEvento} eventos={eventos} />
+          <div className="space-y-6 animate-fade-in">
+            <div className="bg-white p-6 rounded-3xl shadow-lg border border-slate-100">
+              <h2 className="font-bold text-xl text-muni-azul mb-4 flex items-center gap-2">
+                <Calendar className="text-blue-500" /> Agenda Global
+              </h2>
+              <FormularioEvento onGuardar={agregarEvento} />
+            </div>
+            
+            <div className="space-y-3">
+              <h3 className="text-xs font-bold uppercase text-slate-400 ml-4">Hitos Activos</h3>
+              {eventos.length === 0 && <p className="text-center text-slate-400 italic py-8">No hay eventos registrados hoy.</p>}
+              {eventos.map(ev => (
+                <div key={ev.id} className="bg-white p-4 rounded-2xl shadow-sm border-l-4 border-green-500 flex justify-between items-center">
+                  <div>
+                    <h4 className="font-bold text-slate-800">{ev.nombre}</h4>
+                    <p className="text-xs text-slate-500 flex items-center gap-1"><MapPin size={10}/> {ev.lugar} • Dec: {ev.decreto}</p>
+                  </div>
+                  <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-1 rounded-full">EN CURSO</span>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
 
-        {/* VISTA PROTOCOLO */}
+        {/* --- VISTA PROTOCOLO --- */}
         {rol === 'protocolo' && (
-          <VistaProtocolo vips={vips} onCheckIn={toggleCheckIn} />
+          <div className="space-y-4">
+            <div className="bg-purple-600 text-white p-6 rounded-3xl shadow-lg mb-4">
+              <h2 className="font-bold text-xl flex items-center gap-2"><Users /> Control de Acceso</h2>
+              <p className="text-purple-200 text-sm">Sistema de validación VIP</p>
+            </div>
+            {vips.map(vip => (
+              <button 
+                key={vip.id} 
+                onClick={() => toggleCheckIn(vip.id)}
+                className={`w-full p-4 rounded-2xl border-2 flex justify-between items-center transition-all shadow-sm ${vip.estado === 'presente' ? 'bg-green-50 border-green-500' : 'bg-white border-transparent'}`}
+              >
+                <div className="text-left">
+                  <p className="font-bold text-slate-900">{vip.nombre}</p>
+                  <p className="text-xs text-slate-500 uppercase font-bold">{vip.cargo}</p>
+                </div>
+                <div className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${vip.estado === 'presente' ? 'bg-green-500 text-white' : 'bg-slate-200 text-slate-500'}`}>
+                  {vip.estado === 'presente' ? <CheckCircle size={14}/> : ''} 
+                  {vip.estado === 'presente' ? 'EN SALA' : 'CHECK-IN'}
+                </div>
+              </button>
+            ))}
+          </div>
         )}
 
-        {/* VISTA TÉCNICA */}
+        {/* --- VISTA TÉCNICA (MINUTO A MINUTO) --- */}
         {rol === 'tecnico' && (
           <VistaTecnica evento={eventoActivo} />
         )}
 
-        {/* VISTA PRENSA */}
+        {/* --- VISTA PRENSA --- */}
         {rol === 'prensa' && (
-          <VistaPrensa />
+          <div className="space-y-6 text-center">
+            <div className="bg-blue-500 text-white p-8 rounded-3xl shadow-xl">
+              <Camera size={48} className="mx-auto mb-4 opacity-80" />
+              <h2 className="text-2xl font-bold">Hub de Medios</h2>
+              <p className="text-blue-100">Conexión directa con RRPP</p>
+            </div>
+            <button className="w-full border-4 border-dashed border-slate-300 rounded-3xl h-48 flex flex-col items-center justify-center text-slate-400 hover:bg-white hover:border-blue-400 hover:text-blue-500 transition-all gap-2 group">
+              <div className="bg-slate-200 p-4 rounded-full group-hover:bg-blue-100 transition-colors">
+                <Camera size={32} />
+              </div>
+              <span className="font-bold">Tocar para Subir Foto</span>
+            </button>
+          </div>
         )}
 
       </main>
@@ -81,143 +139,81 @@ export default function SerenitoApp() {
   );
 }
 
-// --- SUB-COMPONENTES (Módulos) ---
+// --- SUB-COMPONENTES AUXILIARES ---
 
-const VistaSecretaria = ({ onGuardar, eventos }) => {
-  const [form, setForm] = useState({ nombre: '', lugar: '', decreto: '' });
-
-  const handleSubmit = (e) => {
+const FormularioEvento = ({ onGuardar }) => {
+  const [f, setF] = useState({ nombre: '', lugar: '', decreto: '' });
+  const enviar = (e) => {
     e.preventDefault();
-    onGuardar(form);
-    setForm({ nombre: '', lugar: '', decreto: '' });
-    alert("¡Hito Creado! Visible para el Técnico.");
+    onGuardar(f);
+    setF({ nombre: '', lugar: '', decreto: '' });
+    alert("✅ Hito registrado correctamente");
   };
-
   return (
-    <div className="space-y-6">
-      <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-        <h2 className="font-bold text-lg mb-4 flex items-center gap-2 text-blue-900">
-          <Calendar className="text-blue-600" /> Nuevo Hito
-        </h2>
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <input required placeholder="Nombre del Evento" className="w-full p-3 bg-slate-50 rounded-xl border" 
-            value={form.nombre} onChange={e => setForm({...form, nombre: e.target.value})} />
-          <input required placeholder="Lugar (Ej: El Faro)" className="w-full p-3 bg-slate-50 rounded-xl border" 
-            value={form.lugar} onChange={e => setForm({...form, lugar: e.target.value})} />
-          <input required placeholder="N° Decreto (Ej: 450/2026)" className="w-full p-3 bg-slate-50 rounded-xl border" 
-            value={form.decreto} onChange={e => setForm({...form, decreto: e.target.value})} />
-          <button className="w-full bg-blue-900 text-white p-4 rounded-xl font-bold hover:bg-blue-800 transition">
-            Guardar en Sistema
-          </button>
-        </form>
+    <form onSubmit={enviar} className="space-y-3">
+      <input required placeholder="Nombre del Evento" className="w-full p-3 bg-slate-50 rounded-xl border focus:ring-2 focus:ring-muni-azul outline-none" value={f.nombre} onChange={e=>setF({...f, nombre: e.target.value})} />
+      <div className="grid grid-cols-2 gap-3">
+        <input required placeholder="Lugar (Ej: Faro)" className="w-full p-3 bg-slate-50 rounded-xl border focus:ring-2 focus:ring-muni-azul outline-none" value={f.lugar} onChange={e=>setF({...f, lugar: e.target.value})} />
+        <input required placeholder="N° Decreto" className="w-full p-3 bg-slate-50 rounded-xl border focus:ring-2 focus:ring-muni-azul outline-none" value={f.decreto} onChange={e=>setF({...f, decreto: e.target.value})} />
       </div>
-
-      <div className="space-y-2">
-        <h3 className="text-xs font-bold uppercase text-slate-400 ml-2">Hitos Activos</h3>
-        {eventos.length === 0 && <p className="text-sm text-slate-400 italic p-4">No hay eventos creados hoy.</p>}
-        {eventos.map(ev => (
-          <div key={ev.id} className="bg-white p-4 rounded-2xl shadow-sm flex justify-between items-center">
-            <div>
-              <p className="font-bold text-slate-800">{ev.nombre}</p>
-              <p className="text-xs text-slate-500">{ev.lugar} • Dec: {ev.decreto}</p>
-            </div>
-            <span className="text-[10px] bg-green-100 text-green-700 px-2 py-1 rounded-full font-bold">ACTIVO</span>
-          </div>
-        ))}
-      </div>
-    </div>
+      <button className="w-full bg-muni-azul text-white p-4 rounded-xl font-bold flex justify-center items-center gap-2 hover:bg-blue-900 transition shadow-lg">
+        <Save size={18} /> Guardar Hito
+      </button>
+    </form>
   );
 };
-
-const VistaProtocolo = ({ vips, onCheckIn }) => (
-  <div className="space-y-4">
-    <div className="bg-purple-700 text-white p-6 rounded-3xl shadow-lg mb-6">
-      <h2 className="font-bold text-xl flex items-center gap-2">
-        <Users /> Control de Acceso VIP
-      </h2>
-      <p className="text-purple-200 text-sm mt-1">Valide la asistencia para notificar a locución.</p>
-    </div>
-
-    {vips.map(vip => (
-      <div key={vip.id} className={`p-4 rounded-2xl border-2 flex justify-between items-center transition-all ${vip.estado === 'presente' ? 'bg-green-50 border-green-500 shadow-md' : 'bg-white border-slate-100'}`}>
-        <div>
-          <p className="font-bold text-slate-900">{vip.nombre}</p>
-          <p className="text-xs text-slate-500 uppercase font-bold">{vip.cargo}</p>
-        </div>
-        <button 
-          onClick={() => onCheckIn(vip.id)}
-          className={`px-4 py-2 rounded-xl font-bold text-sm flex items-center gap-2 ${vip.estado === 'presente' ? 'bg-green-600 text-white' : 'bg-slate-200 text-slate-600'}`}
-        >
-          {vip.estado === 'presente' ? <><CheckCircle size={16}/> EN SALA</> : 'Check-In'}
-        </button>
-      </div>
-    ))}
-  </div>
-);
 
 const VistaTecnica = ({ evento }) => {
   const [segundos, setSegundos] = useState(0);
   const [activo, setActivo] = useState(false);
-
+  
   useEffect(() => {
-    let intervalo = null;
-    if (activo) intervalo = setInterval(() => setSegundos(s => s + 1), 1000);
-    else clearInterval(intervalo);
-    return () => clearInterval(intervalo);
+    let int = null;
+    if(activo) int = setInterval(() => setSegundos(s => s + 1), 1000);
+    else clearInterval(int);
+    return () => clearInterval(int);
   }, [activo]);
 
   const formato = (s) => {
     const min = Math.floor(s / 60).toString().padStart(2, '0');
-    const seg = (s % 60).toString().padStart(2, '0');
-    return `${min}:${seg}`;
+    const sec = (s % 60).toString().padStart(2, '0');
+    return `${min}:${sec}`;
   };
 
-  if (!evento) return (
-    <div className="text-center p-10 text-slate-400">
-      <AlertTriangle className="mx-auto mb-2" size={40}/>
-      <p>Esperando que Secretaría cree un hito...</p>
+  if(!evento) return (
+    <div className="text-center p-12 bg-slate-100 rounded-3xl border-2 border-dashed border-slate-300">
+      <AlertTriangle className="mx-auto text-slate-400 mb-2" size={32}/>
+      <p className="text-slate-500 font-bold">Esperando datos de Secretaría...</p>
     </div>
   );
 
   return (
-    <div className="bg-slate-900 text-white p-6 rounded-[2rem] shadow-2xl border-b-8 border-red-600">
-      <div className="flex justify-between items-start mb-8">
-        <div>
-          <span className="bg-red-600 text-[10px] font-bold px-2 py-0.5 rounded uppercase">En Vivo</span>
-          <h1 className="text-2xl font-black mt-2 leading-tight">{evento.nombre}</h1>
-          <p className="text-slate-400 text-sm mt-1 flex items-center gap-1"><MapPin size={12}/> {evento.lugar}</p>
+    <div className="bg-slate-900 text-white p-6 rounded-[2.5rem] shadow-2xl border-b-8 border-red-600 relative overflow-hidden">
+      <div className="absolute top-0 right-0 p-4 opacity-10"><Mic2 size={120}/></div>
+      
+      <div className="relative z-10">
+        <div className="flex justify-between items-start mb-8">
+          <div>
+            <span className="bg-red-600 text-white text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-wider animate-pulse">En Aire</span>
+            <h2 className="text-2xl font-black mt-2 leading-tight">{evento.nombre}</h2>
+            <p className="text-slate-400 text-sm mt-1 flex items-center gap-1"><MapPin size={12}/> {evento.lugar}</p>
+          </div>
         </div>
-        <div className="text-right">
-          <div className="text-5xl font-mono font-bold text-yellow-400 tracking-widest">{formato(segundos)}</div>
-          <p className="text-[10px] uppercase font-bold opacity-50">Tiempo Transcurrido</p>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <button onClick={() => setActivo(!activo)} className={`p-4 rounded-xl font-bold flex items-center justify-center gap-2 ${activo ? 'bg-orange-600' : 'bg-green-600'}`}>
-          {activo ? <Pause/> : <Play/>} {activo ? 'PAUSAR' : 'INICIAR'}
-        </button>
-        <button onClick={() => {setActivo(false); setSegundos(0)}} className="bg-slate-800 p-4 rounded-xl font-bold text-slate-300">
-          REINICIAR
-        </button>
+        <div className="text-center py-6 bg-slate-800/50 rounded-2xl mb-6 backdrop-blur-sm border border-slate-700">
+          <span className="text-7xl font-mono font-bold text-muni-oro tracking-tighter">{formato(segundos)}</span>
+          <p className="text-[10px] uppercase font-bold text-slate-500 tracking-[0.2em] mt-2">Tiempo Transcurrido</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <button onClick={() => setActivo(!activo)} className={`p-4 rounded-2xl font-black flex items-center justify-center gap-2 transition-transform active:scale-95 ${activo ? 'bg-orange-500 text-white' : 'bg-green-500 text-white shadow-[0_4px_0_rgb(21,128,61)]'}`}>
+            {activo ? <Pause fill="currentColor" /> : <Play fill="currentColor" />} {activo ? 'PAUSAR' : 'INICIAR'}
+          </button>
+          <button onClick={() => {setActivo(false); setSegundos(0)}} className="bg-slate-700 p-4 rounded-2xl font-bold text-slate-300 hover:bg-slate-600 transition">
+            REINICIAR
+          </button>
+        </div>
       </div>
     </div>
   );
 };
-
-const VistaPrensa = () => (
-  <div className="space-y-6">
-    <div className="bg-blue-600 text-white p-6 rounded-3xl shadow-lg text-center">
-      <Camera className="mx-auto mb-2" size={40} />
-      <h2 className="font-bold text-xl">Hub de Medios</h2>
-      <p className="text-blue-200 text-sm">Carga rápida para redes sociales</p>
-    </div>
-    <button className="w-full border-4 border-dashed border-slate-300 rounded-3xl h-40 flex flex-col items-center justify-center text-slate-400 hover:bg-slate-50 transition">
-      <Camera size={32} className="mb-2"/>
-      <span className="font-bold">Tocar para Subir Foto</span>
-    </button>
-    <div className="grid grid-cols-3 gap-2">
-      {[1,2,3].map(i => <div key={i} className="bg-slate-200 aspect-square rounded-xl animate-pulse"></div>)}
-    </div>
-  </div>
-);
