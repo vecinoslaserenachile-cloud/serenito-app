@@ -1,18 +1,73 @@
 [
   { "id": 101, "nombre": "Gabriel Boric Font", "cargo": "S.E. Presidente de la República", "vocativo": "Su Excelencia", "categoria": "Nacional VIP", "precedencia": 1, "presente": false, "foto": "" },
+  { "id": 102, "nombre": "José García Ruminot", "cargo": "Presidente del Senado", "vocativo": "Honorable Senador", "categoria": "Nacional VIP", "precedencia": 2, "presente": false, "foto": "" },
   
-  { "id": 400, "nombre": "Daniela Norambuena", "cargo": "Alcaldesa de La Serena", "vocativo": "Sra. Alcaldesa", "categoria": "Municipal Anfitrión", "precedencia": 2, "presente": true, "foto": "" },
+  { "id": 400, "nombre": "Daniela Norambuena", "cargo": "Alcaldesa de La Serena", "vocativo": "Sra. Alcaldesa", "categoria": "Municipal Anfitrión", "precedencia": 3, "presente": true, "foto": "" },
 
   { "id": 201, "nombre": "Cristóbal Juliá", "cargo": "Gobernador Regional", "vocativo": "Sr. Gobernador", "categoria": "Regional", "precedencia": 10, "presente": false, "foto": "" },
   { "id": 202, "nombre": "Galo Luna Penna", "cargo": "Delegado Presidencial Regional", "vocativo": "Sr. Delegado", "categoria": "Regional", "precedencia": 11, "presente": false, "foto": "" },
 
   { "id": 301, "nombre": "Sergio Gahona", "cargo": "Senador", "vocativo": "Honorable Senador", "categoria": "Parlamentario", "precedencia": 15, "presente": false, "foto": "" },
   { "id": 302, "nombre": "Matías Walker", "cargo": "Senador", "vocativo": "Honorable Senador", "categoria": "Parlamentario", "precedencia": 15, "presente": false, "foto": "" },
+  { "id": 303, "nombre": "Daniel Núñez", "cargo": "Senador", "vocativo": "Honorable Senador", "categoria": "Parlamentario", "precedencia": 15, "presente": false, "foto": "" },
   
+  { "id": 304, "nombre": "Ricardo Cifuentes", "cargo": "Diputado", "vocativo": "Honorable Diputado", "categoria": "Parlamentario", "precedencia": 16, "presente": false, "foto": "" },
+  { "id": 305, "nombre": "Marco Antonio Sulantay", "cargo": "Diputado", "vocativo": "Honorable Diputado", "categoria": "Parlamentario", "precedencia": 16, "presente": false, "foto": "" },
+  { "id": 306, "nombre": "Nathalie Castillo", "cargo": "Diputada", "vocativo": "Honorable Diputada", "categoria": "Parlamentario", "precedencia": 16, "presente": false, "foto": "" },
+  { "id": 307, "nombre": "Víctor Pino", "cargo": "Diputado", "vocativo": "Honorable Diputado", "categoria": "Parlamentario", "precedencia": 16, "presente": false, "foto": "" },
+  { "id": 308, "nombre": "Carolina Tello", "cargo": "Diputada", "vocativo": "Honorable Diputada", "categoria": "Parlamentario", "precedencia": 16, "presente": false, "foto": "" },
+  { "id": 309, "nombre": "Juan Manuel Fuenzalida", "cargo": "Diputado", "vocativo": "Honorable Diputado", "categoria": "Parlamentario", "precedencia": 16, "presente": false, "foto": "" },
+
   { "id": 501, "nombre": "René Rebolledo", "cargo": "Arzobispo de La Serena", "vocativo": "Monseñor", "categoria": "Eclesiástico", "precedencia": 20, "presente": true, "foto": "" },
   
+  { "id": 601, "nombre": "Christian Brebi", "cargo": "General Jefe Zona Carabineros", "vocativo": "Sr. General", "categoria": "Fuerzas Orden", "precedencia": 25, "presente": false, "foto": "" },
+  { "id": 602, "nombre": "Ernesto León", "cargo": "Prefecto Inspector PDI", "vocativo": "Sr. Prefecto", "categoria": "Fuerzas Orden", "precedencia": 26, "presente": false, "foto": "" },
+  { "id": 603, "nombre": "Comandante Regimiento 21", "cargo": "Comandante Guarnición Ejército", "vocativo": "Sr. Coronel", "categoria": "Fuerzas Armadas", "precedencia": 27, "presente": false, "foto": "" },
+  { "id": 604, "nombre": "Gobernador Marítimo", "cargo": "Gobernador Marítimo Coquimbo", "vocativo": "Sr. Capitán de Navío", "categoria": "Fuerzas Armadas", "precedencia": 28, "presente": false, "foto": "" },
+
   { "id": 401, "nombre": "Ali Manouchehri", "cargo": "Alcalde de Coquimbo", "vocativo": "Sr. Alcalde", "categoria": "Alcaldes Región", "precedencia": 35, "presente": false, "foto": "" },
-  
-  { "id": 801, "nombre": "Rayén Pojomovsky", "cargo": "Concejala de La Serena", "vocativo": "Sra. Concejala", "categoria": "Concejo Municipal", "precedencia": 40, "presente": false, "foto": "" },
-  { "id": 802, "nombre": "Luisa Jinete", "cargo": "Concejala de La Serena", "vocativo": "Sra. Concejala", "categoria": "Concejo Municipal", "precedencia": 40, "presente": false, "foto": "" }
+  { "id": 402, "nombre": "Rafael Vera", "cargo": "Alcalde de Vicuña", "vocativo": "Sr. Alcalde", "categoria": "Alcaldes Región", "precedencia": 35, "presente": false, "foto": "" },
+  { "id": 403, "nombre": "Jonathan Acuña", "cargo": "Alcalde de Ovalle", "vocativo": "Sr. Alcalde", "categoria": "Alcaldes Región", "precedencia": 35, "presente": false, "foto": "" },
+  { "id": 404, "nombre": "Gerald Cerda", "cargo": "Alcalde de Andacollo", "vocativo": "Sr. Alcalde", "categoria": "Alcaldes Región", "precedencia": 35, "presente": false, "foto": "" },
+  { "id": 405, "nombre": "Hernán Ahumada", "cargo": "Alcalde de Paihuano", "vocativo": "Sr. Alcalde", "categoria": "Alcaldes Región", "precedencia": 35, "presente": false, "foto": "" },
+  { "id": 406, "nombre": "Denis Cortés", "cargo": "Alcalde de Illapel", "vocativo": "Sr. Alcalde", "categoria": "Alcaldes Región", "precedencia": 35, "presente": false, "foto": "" },
+  { "id": 407, "nombre": "Christian Gross", "cargo": "Alcalde de Los Vilos", "vocativo": "Sr. Alcalde", "categoria": "Alcaldes Región", "precedencia": 35, "presente": false, "foto": "" },
+  { "id": 408, "nombre": "Bernardo Leyton", "cargo": "Alcalde de Canela", "vocativo": "Sr. Alcalde", "categoria": "Alcaldes Región", "precedencia": 35, "presente": false, "foto": "" },
+  { "id": 409, "nombre": "Gerardo Cerda", "cargo": "Alcalde de Salamanca", "vocativo": "Sr. Alcalde", "categoria": "Alcaldes Región", "precedencia": 35, "presente": false, "foto": "" },
+  { "id": 410, "nombre": "Cristián Herrera", "cargo": "Alcalde de Monte Patria", "vocativo": "Sr. Alcalde", "categoria": "Alcaldes Región", "precedencia": 35, "presente": false, "foto": "" },
+  { "id": 411, "nombre": "Pedro Castillo", "cargo": "Alcalde de Combarbalá", "vocativo": "Sr. Alcalde", "categoria": "Alcaldes Región", "precedencia": 35, "presente": false, "foto": "" },
+  { "id": 412, "nombre": "Marta Carvajal", "cargo": "Alcaldesa de Punitaqui", "vocativo": "Sra. Alcaldesa", "categoria": "Alcaldes Región", "precedencia": 35, "presente": false, "foto": "" },
+  { "id": 413, "nombre": "Carmen Olivares", "cargo": "Alcaldesa de Río Hurtado", "vocativo": "Sra. Alcaldesa", "categoria": "Alcaldes Región", "precedencia": 35, "presente": false, "foto": "" },
+  { "id": 414, "nombre": "Víctor Donoso", "cargo": "Alcalde de La Higuera", "vocativo": "Sr. Alcalde", "categoria": "Alcaldes Región", "precedencia": 35, "presente": false, "foto": "" },
+
+  { "id": 701, "nombre": "Paulina Mora", "cargo": "Seremi de Gobierno", "vocativo": "Sra. Seremi", "categoria": "SEREMI", "precedencia": 40, "presente": false, "foto": "" },
+  { "id": 702, "nombre": "Nicolás Pérez", "cargo": "Seremi de Educación", "vocativo": "Sr. Seremi", "categoria": "SEREMI", "precedencia": 40, "presente": false, "foto": "" },
+  { "id": 703, "nombre": "Paola Salas", "cargo": "Seremi de Salud", "vocativo": "Sra. Seremi", "categoria": "SEREMI", "precedencia": 40, "presente": false, "foto": "" },
+  { "id": 704, "nombre": "Pía Castillo", "cargo": "Seremi de Economía", "vocativo": "Sra. Seremi", "categoria": "SEREMI", "precedencia": 40, "presente": false, "foto": "" },
+  { "id": 705, "nombre": "Javier Sandoval", "cargo": "Seremi MOP", "vocativo": "Sr. Seremi", "categoria": "SEREMI", "precedencia": 40, "presente": false, "foto": "" },
+  { "id": 706, "nombre": "José Peralta", "cargo": "Seremi MINVU", "vocativo": "Sr. Seremi", "categoria": "SEREMI", "precedencia": 40, "presente": false, "foto": "" },
+  { "id": 707, "nombre": "Fernando Viveros", "cargo": "Seremi de Transporte", "vocativo": "Sr. Seremi", "categoria": "SEREMI", "precedencia": 40, "presente": false, "foto": "" },
+  { "id": 708, "nombre": "María José Rojas", "cargo": "Seremi de Desarrollo Social", "vocativo": "Sra. Seremi", "categoria": "SEREMI", "precedencia": 40, "presente": false, "foto": "" },
+
+  { "id": 801, "nombre": "Rayén Pojomovsky", "cargo": "Concejala de La Serena", "vocativo": "Sra. Concejala", "categoria": "Concejo Municipal", "precedencia": 45, "presente": false, "foto": "" },
+  { "id": 802, "nombre": "Luisa Jinete", "cargo": "Concejala de La Serena", "vocativo": "Sra. Concejala", "categoria": "Concejo Municipal", "precedencia": 45, "presente": false, "foto": "" },
+  { "id": 803, "nombre": "Félix Velasco", "cargo": "Concejal de La Serena", "vocativo": "Sr. Concejal", "categoria": "Concejo Municipal", "precedencia": 45, "presente": false, "foto": "" },
+  { "id": 804, "nombre": "Camilo Araya", "cargo": "Concejal de La Serena", "vocativo": "Sr. Concejal", "categoria": "Concejo Municipal", "precedencia": 45, "presente": false, "foto": "" },
+  { "id": 805, "nombre": "Daniela Molina", "cargo": "Concejala de La Serena", "vocativo": "Sra. Concejala", "categoria": "Concejo Municipal", "precedencia": 45, "presente": false, "foto": "" },
+  { "id": 806, "nombre": "Cristián Marín", "cargo": "Concejal de La Serena", "vocativo": "Sr. Concejal", "categoria": "Concejo Municipal", "precedencia": 45, "presente": false, "foto": "" },
+  { "id": 807, "nombre": "Carmen Zamora", "cargo": "Concejala de La Serena", "vocativo": "Sra. Concejala", "categoria": "Concejo Municipal", "precedencia": 45, "presente": false, "foto": "" },
+  { "id": 808, "nombre": "Pamela Caimanque", "cargo": "Concejala de La Serena", "vocativo": "Sra. Concejala", "categoria": "Concejo Municipal", "precedencia": 45, "presente": false, "foto": "" },
+  { "id": 809, "nombre": "Daniel Palominos", "cargo": "Concejal de La Serena", "vocativo": "Sr. Concejal", "categoria": "Concejo Municipal", "precedencia": 45, "presente": false, "foto": "" },
+  { "id": 810, "nombre": "Marcel Toledo", "cargo": "Concejal de La Serena", "vocativo": "Sr. Concejal", "categoria": "Concejo Municipal", "precedencia": 45, "presente": false, "foto": "" },
+
+  { "id": 901, "nombre": "Lombardo Toledo", "cargo": "Consejero Regional", "vocativo": "Sr. Consejero", "categoria": "CORE", "precedencia": 50, "presente": false, "foto": "" },
+  { "id": 902, "nombre": "Javier Vega", "cargo": "Consejero Regional", "vocativo": "Sr. Consejero", "categoria": "CORE", "precedencia": 50, "presente": false, "foto": "" },
+  { "id": 903, "nombre": "Paola Cortés", "cargo": "Consejera Regional", "vocativo": "Sra. Consejera", "categoria": "CORE", "precedencia": 50, "presente": false, "foto": "" },
+  { "id": 904, "nombre": "Pedro Valencia", "cargo": "Consejero Regional", "vocativo": "Sr. Consejero", "categoria": "CORE", "precedencia": 50, "presente": false, "foto": "" },
+  { "id": 905, "nombre": "Marcelo Castagneto", "cargo": "Consejero Regional", "vocativo": "Sr. Consejero", "categoria": "CORE", "precedencia": 50, "presente": false, "foto": "" },
+  { "id": 906, "nombre": "Tatiana Castillo", "cargo": "Consejera Regional", "vocativo": "Sra. Consejera", "categoria": "CORE", "precedencia": 50, "presente": false, "foto": "" },
+
+  { "id": 1001, "nombre": "Presidente UNCO", "cargo": "Presidente Unión Comunal JJVV", "vocativo": "Sr. Presidente", "categoria": "Sociedad Civil", "precedencia": 100, "presente": false, "foto": "" },
+  { "id": 1002, "nombre": "Presidente Bomberos", "cargo": "Superintendente de Bomberos", "vocativo": "Sr. Superintendente", "categoria": "Sociedad Civil", "precedencia": 100, "presente": false, "foto": "" },
+  { "id": 1003, "nombre": "Presidente Cruz Roja", "cargo": "Presidenta Cruz Roja La Serena", "vocativo": "Sra. Presidenta", "categoria": "Sociedad Civil", "precedencia": 100, "presente": false, "foto": "" }
 ]
