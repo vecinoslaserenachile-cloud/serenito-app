@@ -43,11 +43,51 @@
     <script type="text/babel">
         const { useState, useEffect, useRef, useMemo } = React;
 
+        // DATOS INICIALES MULTI-EVENTO CON CHECKLISTS LARGOS
         const EVENTOS_INICIALES = [
             { 
                 id: 1, nombre: "Inauguración Plaza de Armas", fecha: "2026-04-28T11:00", lugar: "Plaza de Armas", 
                 direccion: "Gregorio Cordovez #400", coords: [-29.9027, -71.2520], estado: "En Desarrollo", responsable: "Arq. María González", 
-                checklist: [{ id: 1, tarea: "Corte de Cinta", listo: false }, { id: 2, tarea: "Audio y Micrófono", listo: true }] 
+                checklist: [
+                    { id: 1, tarea: "Instalación de Carpa 10x20", listo: true },
+                    { id: 2, tarea: "Tarima y Podio Institucional", listo: true },
+                    { id: 3, tarea: "Prueba de Micrófono Alcaldesa", listo: false },
+                    { id: 4, tarea: "Sillas VIP (Primera Fila con Nombre)", listo: false },
+                    { id: 5, tarea: "Cinta Tricolor y Tijeras Doradas", listo: false },
+                    { id: 6, tarea: "Banderas (Chile, Región, Comuna)", listo: true },
+                    { id: 7, tarea: "Sistema de Amplificación Line Array", listo: false },
+                    { id: 8, tarea: "Generador Eléctrico de Respaldo", listo: false },
+                    { id: 9, tarea: "Agua Mineral para Autoridades", listo: false },
+                    { id: 10, tarea: "Atril para Locutor", listo: true },
+                    { id: 11, tarea: "Música de Fondo y Himno Nacional", listo: false },
+                    { id: 12, tarea: "Fotógrafo Oficial Confirmado", listo: false }
+                ]
+            },
+            { 
+                id: 2, nombre: "Cuenta Pública 2026", fecha: "2026-04-30T19:00", lugar: "Teatro Municipal", 
+                direccion: "Benavente #580", coords: [-29.9030, -71.2490], estado: "Pendiente", responsable: "Jefa de Gabinete", 
+                checklist: [
+                    { id: 1, tarea: "Pantalla LED Gigante (Fondo)", listo: false },
+                    { id: 2, tarea: "Iluminación Escénica", listo: false },
+                    { id: 3, tarea: "Transmisión Streaming Youtube", listo: false },
+                    { id: 4, tarea: "Libretos Impresos (3 Copias)", listo: false },
+                    { id: 5, tarea: "Video Resumen Gestión", listo: true },
+                    { id: 6, tarea: "Cóctel de Cierre", listo: false },
+                    { id: 7, tarea: "Guardarropía Habilitada", listo: false },
+                    { id: 8, tarea: "Confirmación Asistencia Concejo", listo: false }
+                ]
+            },
+            { 
+                id: 3, nombre: "Desfile Escolar Glorias Navales", fecha: "2026-05-21T10:00", lugar: "Av. del Mar", 
+                direccion: "Faro Monumental", coords: [-29.9045, -71.2755], estado: "Planificación", responsable: "Depto. Educación", 
+                checklist: [
+                    { id: 1, tarea: "Cierre de Calles (Carabineros)", listo: false },
+                    { id: 2, tarea: "Palco de Autoridades (Techado)", listo: false },
+                    { id: 3, tarea: "Vallas Papales", listo: false },
+                    { id: 4, tarea: "Banda Instrumental", listo: true },
+                    { id: 5, tarea: "Punto de Hidratación Alumnos", listo: false },
+                    { id: 6, tarea: "Ambulancia en Terreno", listo: false }
+                ]
             }
         ];
 
@@ -99,7 +139,7 @@
                             <Label text="Operación Live" />
                             <MenuBtn icon="Award" label="Protocolo (Puerta)" active={vista==='protocolo'} onClick={()=>navegar('protocolo')} />
                             <MenuBtn icon="Mic2" label="Pantalla Locutor" active={vista==='locutor'} onClick={()=>navegar('locutor')} />
-                            <MenuBtn icon="Settings" label="Técnica (Multi-Evento)" active={vista==='tecnica'} onClick={()=>navegar('tecnica')} />
+                            <MenuBtn icon="Settings" label="Técnica (Producción)" active={vista==='tecnica'} onClick={()=>navegar('tecnica')} />
                             
                             <Label text="Administración" />
                             <MenuBtn icon="Database" label="Gestión BD + Fotos" active={vista==='admin'} onClick={()=>navegar('admin')} />
@@ -180,7 +220,7 @@
             const guardar = (e) => {
                 e.preventDefault();
                 if(!form.coords) return alert("Seleccione ubicación en mapa");
-                onGuardar({ ...form, id: Date.now(), checklist: [{id:1, tarea: "Instalación", listo: false}], estado: "Pendiente", lugar: "Ubicación Mapa" });
+                onGuardar({ ...form, id: Date.now(), checklist: [{id:1, tarea: "Instalación Básica", listo: false}], estado: "Pendiente", lugar: "Ubicación Mapa" });
                 alert("Evento creado");
                 setForm({ nombre: '', responsable: '', fecha: '', coords: null, direccion: '' });
             }
@@ -251,9 +291,10 @@
             );
         }
 
+        // TÉCNICA MULTI-EVENTO
         function Tecnica({ eventos, setEventos }) {
             const [selId, setSelId] = useState(eventos.length > 0 ? eventos[0].id : null);
-            const sel = eventos.find(e => e.id === selId) || (eventos.length > 0 ? eventos[0] : null);
+            const sel = eventos.find(e => e.id === selId);
 
             const toggle = (taskId) => {
                 if(!sel) return;
@@ -264,19 +305,19 @@
 
             const agregarManual = () => {
                 if(!sel) return;
-                const texto = prompt("Nombre de la nueva tarea:");
+                const texto = prompt("Nombre de la nueva variable:");
                 if(texto) {
                     const actualizado = { ...sel, checklist: [...sel.checklist, { id: Date.now(), tarea: texto, listo: false }] };
                     setEventos(eventos.map(ev => ev.id === sel.id ? actualizado : ev));
                 }
             }
 
-            if(!sel) return <div className="p-10 text-center text-gray-400">No hay eventos activos.</div>;
+            if(!sel) return <div className="p-10 text-center text-gray-400">No hay eventos activos. Cree uno en Secretaría.</div>;
 
             return (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
                     <div className="lg:col-span-1 space-y-3 overflow-y-auto pr-2 border-r border-gray-100">
-                        <h2 className="font-black text-lg text-ls-red mb-2">Seleccionar Evento</h2>
+                        <h2 className="font-black text-lg text-ls-red mb-2">Seleccionar Ficha</h2>
                         {eventos.map(ev => (
                             <div key={ev.id} onClick={() => setSelId(ev.id)} className={`p-4 rounded-xl cursor-pointer border transition-all ${sel.id === ev.id ? 'bg-ls-red text-white shadow-md' : 'bg-white hover:bg-gray-50 border-gray-200'}`}>
                                 <h3 className="font-bold text-sm">{ev.nombre}</h3>
@@ -287,7 +328,7 @@
                     <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-lg border-t-4 border-ls-yellow flex flex-col">
                          <div className="flex justify-between items-start mb-4">
                              <div><h2 className="font-black text-xl">{sel.nombre}</h2><p className="text-sm text-gray-500">{sel.direccion}</p></div>
-                             <button onClick={agregarManual} className="bg-gray-100 p-2 rounded-lg hover:bg-gray-200 text-xs font-bold flex gap-1"><i data-lucide="PlusSquare" size={14}></i> Tarea</button>
+                             <button onClick={agregarManual} className="bg-gray-100 p-2 rounded-lg hover:bg-gray-200 text-xs font-bold flex gap-1"><i data-lucide="PlusSquare" size={14}></i> Variable</button>
                          </div>
                          <div className="space-y-2 flex-1 overflow-y-auto">
                             {sel.checklist.map(t => (
