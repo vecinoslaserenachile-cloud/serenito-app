@@ -3,340 +3,509 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>S.E.R.E.N.I.T.O. | Gestión La Serena 2026</title>
+    <title>S.E.R.E.N.I.T.O. | Gestión Interna de Eventos y Protocolo</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2210%22 fill=%22%23b91c1c%22 /><text x=%2250%22 y=%2275%22 font-family=%22Arial%22 font-size=%2270%22 font-weight=%22bold%22 fill=%22white%22 text-anchor=%22middle%22>S</text></svg>">
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;900&display=swap" rel="stylesheet">
-    
     <script>
       tailwind.config = {
         theme: {
           extend: {
             fontFamily: { sans: ['Inter', 'sans-serif'] },
             colors: {
-              'ls-red': '#b91c1c', 'ls-red-dark': '#7f1d1d', 'ls-yellow': '#facc15', 'ls-gray': '#f8fafc',
-            },
-            animation: {
-              'marquee': 'marquee 25s linear infinite',
-            },
-            keyframes: {
-              marquee: {
-                '0%': { transform: 'translateX(100%)' },
-                '100%': { transform: 'translateX(-100%)' },
-              }
+              'ls-red': '#b91c1c',
+              'ls-stone': '#292524',
+              'ls-gold': '#d97706',
             }
           }
         }
       }
     </script>
     <style>
-        .map-container { height: 100%; min-height: 500px; width: 100%; border-radius: 1rem; z-index: 1; }
-        .pulse-icon { background-color: #b91c1c; border-radius: 50%; width: 24px; height: 24px; border: 4px solid white; animation: pulse 1.5s infinite; }
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(185, 28, 28, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(185, 28, 28, 0); } }
-        .movil-icon { background: white; border-radius: 50%; border: 2px solid #b91c1c; display: flex; align-items: center; justify-content: center; font-size: 14px; width: 32px; height: 32px; color: #b91c1c; font-weight: bold; }
         .scroll-hide::-webkit-scrollbar { display: none; }
-        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(5px); border: 1px solid rgba(0,0,0,0.05); }
+        .wincha-scroll { animation: marquee 30s linear infinite; } /* Velocidad ajustada para legibilidad */
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
     </style>
 </head>
-<body class="bg-ls-gray text-slate-800 overflow-x-hidden font-sans">
+<body class="bg-slate-100 text-slate-900 overflow-x-hidden">
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect, useRef, useMemo } = React;
 
-        const UBICACIONES = { "El Faro": [-29.9045, -71.2755], "Ed. Consistorial": [-29.9027, -71.2520] };
-        
-        const EVENTOS_INICIALES = [
-            { 
-                id: 1, 
-                nombre: "Inauguración Plaza de Armas", 
-                fecha: "2026-04-28T11:00", 
-                lugar: "Plaza de Armas", 
-                direccion: "Gregorio Cordovez #400",
-                coords: UBICACIONES["Ed. Consistorial"], 
-                estado: "En Desarrollo", 
-                responsable: "Arq. María González", 
-                checklist: [{ id: 1, tarea: "Corte de Cinta", listo: false }] 
-            },
-            {
-                id: 2,
-                nombre: "Campeonato Fútbol Escolar",
-                fecha: "2026-05-02T09:00",
-                lugar: "Estadio La Portada",
-                direccion: "Av. Estadio #100",
-                coords: [-29.912, -71.256],
-                estado: "Pendiente",
-                responsable: "Juan Pérez (Deportes)",
-                checklist: [{ id: 1, tarea: "Arbitraje", listo: false }]
-            }
+        // Base Masiva de Checklist default
+        const DEFAULT_CHECKLIST = [
+            { id: 1, tarea: "Confirmación de Silla Presidencial", listo: false },
+            { id: 2, tarea: "Prueba de Audio y Micrófonos", listo: false },
+            { id: 3, tarea: "Iluminación de Podio", listo: false },
+            { id: 4, tarea: "Agua para oradores", listo: false },
+            { id: 5, tarea: "Impresión de Guiones (Locutor)", listo: false },
+            { id: 6, tarea: "Revisión de Climatización", listo: false },
+            { id: 7, tarea: "Coordinación con Prensa", listo: false },
+            { id: 8, tarea: "Check de Accesos y Seguridad", listo: false },
+            { id: 9, tarea: "Confirmación de Catering (VIP)", listo: false },
+            { id: 10, tarea: "Decoración Floral y Banderas", listo: false }
         ];
 
         function SerenitoApp() {
-            const [vista, setVista] = useState('dashboard');
+            const [vista, setVista] = useState('protocolo');
+            const [autoridades, setAutoridades] = useState([]);
             const [menuOpen, setMenuOpen] = useState(false);
-            const [eventos, setEventos] = useState(EVENTOS_INICIALES);
-            const [autoridades, setAutoridades] = useState([]); 
-            const [locutorNombre, setLocutorNombre] = useState("");
+            const [checklist, setChecklist] = useState(DEFAULT_CHECKLIST);
             const [errorCarga, setErrorCarga] = useState(null);
 
+            // Carga dinámica del JSON Masivo
             useEffect(() => {
                 fetch('autoridades_coquimbo_2026.json')
-                    .then(res => res.ok ? res.json() : Promise.reject("Error JSON"))
-                    .then(data => setAutoridades(data.sort((a, b) => a.precedencia - b.precedencia)))
-                    .catch(err => setErrorCarga("⚠️ Error cargando DB. Verifique archivo JSON."));
+                    .then(response => {
+                        if (!response.ok) { throw new Error("Error cargando base de datos."); }
+                        return response.json();
+                    })
+                    .then(data => {
+                        const sorted = data.sort((a, b) => a.rango - b.rango);
+                        setAutoridades(sorted);
+                        setErrorCarga(null);
+                    })
+                    .catch(error => {
+                        console.error("Critical: Fallo en carga del JSON.", error);
+                        setErrorCarga("Error cargando base de datos. Verifique 'autoridades_coquimbo_2026.json'");
+                    });
             }, []);
 
-            const navegar = (v) => { setVista(v); setMenuOpen(false); }
-            const cerrarSesion = () => { if(confirm("¿Cerrar sesión del sistema?")) alert("Sesión finalizada (Simulación)"); }
-
             return (
-                <div className="flex h-screen flex-col md:flex-row overflow-hidden bg-slate-50">
+                <div className="flex h-screen flex-col md:flex-row overflow-hidden font-sans">
                     
-                    {/* SIDEBAR */}
-                    <aside className={`fixed inset-y-0 left-0 z-40 w-72 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out flex flex-col shadow-2xl ${menuOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0`}>
-                        <div className="p-8 flex flex-col items-center bg-gradient-to-b from-ls-red to-ls-red-dark text-white">
-                            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center font-black text-4xl text-ls-red shadow-lg mb-3 border-4 border-ls-yellow">S</div>
-                            <h1 className="text-xl font-black tracking-tighter">S.E.R.E.N.I.T.O.</h1>
-                            <p className="text-[10px] uppercase font-bold text-ls-yellow mt-1 tracking-widest">Gestión 2026</p>
+                    {/* BARRA MÓVIL SIMULADA (Mínimo requerido) */}
+                    <div className="md:hidden bg-ls-stone text-white p-4 flex justify-between items-center shadow-md z-50">
+                        <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 bg-ls-red rounded flex items-center justify-center font-bold">S</div>
+                            <span className="font-bold tracking-tighter">S.E.R.E.N.I.T.O.</span>
                         </div>
-                        <nav className="flex-1 py-6 px-4 space-y-2 overflow-y-auto bg-gray-50">
-                            <p className="px-2 text-[10px] font-black text-gray-400 uppercase mb-1 tracking-wider">Planificación</p>
-                            <MenuBtn icon="Map" label="Despliegue Territorial" active={vista==='dashboard'} onClick={()=>navegar('dashboard')} />
-                            <MenuBtn icon="CalendarPlus" label="Secretaría & Hitos" active={vista==='secretaria'} onClick={()=>navegar('secretaria')} />
-                            
-                            <p className="px-2 text-[10px] font-black text-gray-400 uppercase mb-1 mt-6 tracking-wider">Operación Live</p>
-                            <MenuBtn icon="Award" label="Protocolo (Puerta)" active={vista==='protocolo'} onClick={()=>navegar('protocolo')} />
-                            <MenuBtn icon="Mic2" label="Pantalla Locutor" active={vista==='locutor'} onClick={()=>navegar('locutor')} />
-                            <MenuBtn icon="Settings" label="Técnica (Haz-in)" active={vista==='tecnica'} onClick={()=>navegar('tecnica')} />
-                        </nav>
+                        <button onClick={() => setMenuOpen(!menuOpen)}>
+                            <i data-lucide={menuOpen ? "X" : "Menu"} size="28"></i>
+                        </button>
+                    </div>
+
+                    {/* SIDEBAR */}
+                    <aside className={`fixed inset-y-0 left-0 z-40 w-72 bg-ls-stone text-white transform transition-transform duration-300 ease-in-out shadow-2xl ${menuOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0 md:flex md:flex-col`}>
+                        <div className="p-6 flex flex-col items-center border-b border-gray-700 bg-gray-900/20">
+                            <div className="w-14 h-14 bg-ls-red rounded-xl flex items-center justify-center font-black text-4xl shadow-lg mb-3 border-2 border-white/10">S</div>
+                            <h1 className="text-xl font-black tracking-tighter">S.E.R.E.N.I.T.O.</h1>
+                            <p className="text-[10px] uppercase tracking-widest text-ls-gold font-bold mt-1">Gestión Interna Live Ops</p>
+                        </div>
                         
-                        <div className="p-4 border-t border-gray-200">
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="w-10 h-10 rounded-full bg-ls-red text-white flex items-center justify-center font-bold text-sm">RG</div>
+                        <nav className="flex-1 py-6 space-y-1 px-3 mt-14 md:mt-0">
+                            <div className="px-3 text-[10px] font-bold text-gray-500 uppercase mb-2">Operación Actual</div>
+                            <NavBtn icon="Award" label="Protocolo (Check-in)" active={vista === 'protocolo'} onClick={() => { setVista('protocolo'); setMenuOpen(false); }} />
+                            <NavBtn icon="Mic2" label="Pestaña Locutor" active={vista === 'locutor'} onClick={() => { setVista('locutor'); setMenuOpen(false); }} />
+                            <NavBtn icon="Settings" label="Técnica (Haz-in)" active={vista === 'tecnica'} onClick={() => { setVista('tecnica'); setMenuOpen(false); }} />
+                            
+                            <div className="px-3 text-[10px] font-bold text-gray-400 uppercase mb-2 mt-6">Administración</div>
+                            <NavBtn icon="Database" label="Administración Base" active={vista === 'admin_base'} onClick={() => { setVista('admin_base'); setMenuOpen(false); }} />
+                        </nav>
+
+                        <div className="p-4 bg-gray-900/50 text-xs text-gray-400 border-t border-gray-800 flex justify-between items-center">
+                            <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-full bg-ls-gold text-white flex items-center justify-center font-bold">RG</div>
                                 <div>
-                                    <p className="font-bold text-sm text-gray-800">Rodrigo Godoy</p>
-                                    <p className="text-green-600 text-[10px] font-bold flex items-center gap-1"><span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span> Online</p>
+                                    <p className="font-bold text-white">Rodrigo Godoy</p>
+                                    <p className="text-green-400 text-[10px]">● Online</p>
                                 </div>
                             </div>
-                            <button onClick={cerrarSesion} className="w-full flex items-center justify-center gap-2 p-2 rounded-lg bg-red-50 text-red-600 font-bold hover:bg-red-100 transition text-xs uppercase tracking-wide">
-                                <i data-lucide="LogOut" size={14}></i> Salir del Sistema
-                            </button>
+                            <button className="text-gray-500 hover:text-white"><i data-lucide="LogOut" size="16"></i></button>
                         </div>
                     </aside>
 
-                    {/* CABECERA MÓVIL */}
-                    <div className="md:hidden bg-ls-red text-white p-4 flex justify-between items-center z-50 shadow-md">
-                        <span className="font-bold">S.E.R.E.N.I.T.O.</span>
-                        <button onClick={() => setMenuOpen(!menuOpen)}><i data-lucide="Menu"></i></button>
-                    </div>
+                    {/* MAIN CONTENT AREA */}
+                    <main className="flex-1 overflow-y-auto bg-slate-50 relative flex flex-col">
+                        
+                        {/* HEADER PRINCIPAL */}
+                        <header className="flex justify-between items-center p-4 md:p-8 bg-white shadow-sm border-b border-gray-100 z-10">
+                            <div className="flex items-center gap-3">
+                                <i data-lucide="Radio" className="text-ls-red"></i>
+                                <h2 className="text-xl md:text-3xl font-black text-ls-stone uppercase tracking-tight">CONTROL PROTOCOLAR TOTAL COQUIMBO 2026</h2>
+                            </div>
+                            <div className="hidden md:block text-right">
+                                <p className="text-sm font-bold tracking-tight text-gray-500 bg-white px-3 py-1 rounded-full shadow-inner border border-gray-100">
+                                    Base DB: {autoridades.length > 0 ? `${autoridades.length} Autoridades` : 'Cargando...'}
+                                </p>
+                            </div>
+                        </header>
 
-                    {/* MAIN */}
-                    <main className="flex-1 overflow-y-auto p-4 md:p-8 w-full relative flex flex-col">
-                        <div className="flex-1 pb-16">
-                            {errorCarga && <div className="bg-red-100 text-red-700 p-3 rounded-lg mb-4 text-sm border border-red-200">{errorCarga}</div>}
-                            {vista === 'dashboard' && <Dashboard eventos={eventos} />}
-                            {vista === 'secretaria' && <Secretaria onGuardar={(nuevo) => setEventos([...eventos, nuevo])} />}
-                            {vista === 'protocolo' && <Protocolo autoridades={autoridades} setAutoridades={setAutoridades} />}
-                            {vista === 'locutor' && <div className="max-w-4xl mx-auto"><VistaLocutor autoridades={autoridades} nombreLocutor={locutorNombre} setNombreLocutor={setLocutorNombre} /></div>}
-                            {vista === 'tecnica' && <Tecnica eventos={eventos} setEventos={setEventos} />}
+                        {/* ERROR CARGA */}
+                        {errorCarga && <div className="bg-red-100 text-red-700 p-4 font-bold text-center m-4 md:m-8 rounded-xl shadow-inner border border-red-200">{errorCarga}</div>}
+
+                        {/* RENDER VISTAS */}
+                        <div className="flex-1 p-4 md:p-8 pb-20"> {/* pb-20 para dar espacio a la wincha */}
+                            {vista === 'protocolo' && <ProtocoloView autoridades={autoridades} setAutoridades={setAutoridades} />}
+                            {vista === 'locutor' && <LocutorView autoridades={autoridades} />}
+                            {vista === 'tecnica' && <TecnicaView checklist={checklist} setChecklist={setChecklist} />}
+                            {vista === 'admin_base' && <AdminBaseView autoridades={autoridades} setAutoridades={setAutoridades} />}
                         </div>
 
-                        {/* WINCHA AMERICANA (TICKER LIVE) */}
-                        <WinchaInformativa autoridades={autoridades} eventos={eventos} />
+                        {/* WINCHA AMERICANA (Smarter & Ticker) */}
+                        <WinchaInformativa autoridades={autoridades} />
                     </main>
                 </div>
             );
         }
 
-        // --- COMPONENTES ---
+        // COMPONENTE NAV BUTTON
+        const NavBtn = ({ icon, label, active, onClick }) => (
+            <button onClick={onClick} className={`w-full flex items-center gap-3 px-3 py-3 rounded-lg mb-1.5 transition-all text-xs font-semibold ${active ? 'bg-ls-red text-white shadow-lg ring-1 ring-white/10' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}>
+                <i data-lucide={icon} size="16"></i> {label}
+            </button>
+        );
 
-        function WinchaInformativa({ autoridades, eventos }) {
-            const presentes = autoridades.filter(a => a.presente).map(a => a.nombre + " (" + a.cargo + ")");
-            const eventosActivos = eventos.filter(e => e.estado === "En Desarrollo").map(e => e.nombre + " [EN DESARROLLO]");
+        // COMPONENTE WINCHA AMERICANA (Ticker)
+        const WinchaInformativa = ({ autoridades }) => {
+            const presentes = autoridades.filter(a => a.presente);
             
-            const noticias = [
-                ...presentes.map(p => `🟢 INGRESÓ: ${p}`),
-                ...eventosActivos.map(e => `📢 HITO: ${e}`),
-                "☀️ Temperatura: 18°C La Serena",
-                "🚧 Despliegue Territorial Activo"
-            ];
+            const textoScrolling = presentes.length > 0 
+                ? presentes.map(a => `${a.cargo.toUpperCase()} ${a.nombre.toUpperCase()}`).join(" ... ")
+                : "Esperando acreditación de autoridades en ProtoGate...";
+
+            const dobleTexto = `${textoScrolling} ... ${textoScrolling}`;
 
             return (
-                <div className="fixed bottom-0 left-0 md:left-72 right-0 bg-ls-red text-white h-10 flex items-center overflow-hidden z-50 shadow-lg border-t-2 border-ls-yellow">
-                    <div className="bg-ls-red-dark h-full px-4 flex items-center font-black text-xs uppercase tracking-widest z-10 shadow-lg">
-                        <span className="animate-pulse mr-2">●</span> En Vivo
+                <div className="fixed bottom-0 left-0 md:left-72 right-0 bg-ls-red text-white h-10 md:h-12 flex items-center overflow-hidden z-50 shadow-inner border-t-2 border-gray-900/50">
+                    <div className="bg-ls-red-dark h-full px-4 md:px-6 flex items-center font-black text-[9px] md:text-xs uppercase tracking-widest z-10 shadow-lg whitespace-nowrap">
+                        <span className="animate-pulse mr-2 md:mr-3">●</span> En Vivo
                     </div>
-                    <div className="whitespace-nowrap animate-marquee flex items-center gap-16 text-sm font-bold pl-4">
-                        {noticias.length > 0 ? noticias.map((n, i) => (
-                            <span key={i} className="flex items-center gap-2"><i data-lucide="Radio" size={14} className="opacity-50"></i> {n}</span>
-                        )) : <span>Esperando actualizaciones del sistema...</span>}
+                    <div className="flex-1 whitespace-nowrap font-semibold text-xs md:text-sm h-full flex items-center bg-ls-red relative">
+                        <p className="wincha-scroll absolute whitespace-nowrap">
+                            {dobleTexto}
+                        </p>
+                    </div>
+                    <div className="bg-ls-stone h-full px-4 flex items-center text-[9px] uppercase tracking-widest z-10 shadow-lg text-gray-500 whitespace-nowrap">
+                        S.E.R.E.N.I.T.O. Logic v7.0 (Total Coquimbo DB)
                     </div>
                 </div>
-            )
+            );
         }
 
-        // ... Dashboard, Secretaria, Protocolo, Locutor, Tecnica (Mismo código optimizado anterior) ...
-        // (Por brevedad del código maestro, aquí van los mismos componentes V10.0 pero integrados con las nuevas props)
-        
-        function Dashboard({ eventos }) {
-            const mapRef = useRef(null);
-            useEffect(() => {
-                if(!mapRef.current && document.getElementById('mapa-tactico')) {
-                    const map = L.map('mapa-tactico').setView([-29.9045, -71.2550], 14);
-                    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
-                    eventos.forEach(ev => {
-                        const icon = L.divIcon({ className: '', html: `<div class="pulse-icon"></div>` });
-                        L.marker(ev.coords, {icon}).addTo(map).bindPopup(`<b>${ev.nombre}</b><br>${ev.direccion}`);
-                    });
-                    mapRef.current = map;
-                }
-            }, [eventos]);
+        // --- VISTA: PROTOCOLO (Masivo) ---
+        function ProtocoloView({ autoridades, setAutoridades }) {
+            const [terminoBusqueda, setTerminoBusqueda] = useState("");
+            const filtrados = autoridades.filter(a => a.nombre.toLowerCase().includes(terminoBusqueda.toLowerCase()) || a.cargo.toLowerCase().includes(terminoBusqueda.toLowerCase()));
+            
             return (
-                <div className="h-full flex flex-col gap-6">
-                    <h2 className="text-3xl font-black text-ls-red uppercase flex gap-2"><i data-lucide="Map" size="32"></i> Despliegue Territorial</h2>
-                    <div className="relative flex-1 rounded-2xl overflow-hidden shadow-2xl border-4 border-white">
-                        <div id="mapa-tactico" className="map-container"></div>
-                        <div className="absolute top-4 right-4 glass-panel p-4 rounded-xl shadow-lg z-[500] w-64">
-                            <h4 className="text-xs font-black text-ls-red uppercase mb-2">Resumen Operativo</h4>
-                            <div className="flex justify-between text-sm"><span>Hitos:</span><b>{eventos.length}</b></div>
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                    {/* Check-in Puerta */}
+                    <div className="xl:col-span-2 space-y-4 bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-100 flex flex-col h-[70vh]">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg md:text-2xl font-black text-ls-stone flex items-center gap-3"><i data-lucide="UserCheck" className="text-ls-red"></i> Acreditación Puerta (ProtoGate 2026)</h3>
+                            <span className="text-xs font-mono font-bold tracking-tight text-gray-500 bg-gray-50 px-3 py-1 rounded-full shadow-inner border border-gray-100">{autoridades.filter(a => a.presente).length} Presentes</span>
                         </div>
-                    </div>
-                </div>
-            );
-        }
+                        
+                        {/* Buscador */}
+                        <div className="relative mb-6">
+                            <i data-lucide="Search" className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size="18"></i>
+                            <input type="search" placeholder="Buscar por nombre, cargo o rango..." value={terminoBusqueda} onChange={e => setTerminoBusqueda(e.target.value)} className="w-full pl-12 pr-4 py-4 md:py-5 bg-slate-50 border border-gray-200 rounded-xl outline-none focus:border-ls-red focus:ring-1 focus:ring-ls-red text-base font-semibold" />
+                        </div>
 
-        function Secretaria({ onGuardar }) {
-            const [form, setForm] = useState({ nombre: '', lugar: '', fecha: '', coords: null, direccion: '', responsable: '', estado: 'Pendiente' });
-            const mapRef = useRef(null);
-            useEffect(() => {
-                if(!mapRef.current && document.getElementById('mapa-geo')) {
-                    const map = L.map('mapa-geo').setView([-29.9045, -71.2550], 14);
-                    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
-                    map.on('click', (e) => {
-                        setForm(prev => ({ ...prev, coords: [e.latlng.lat, e.latlng.lng], lugar: 'Ubicación Georreferenciada', direccion: `Calle Simulada #${Math.floor(Math.random()*1000)}` }));
-                        L.marker(e.latlng).addTo(map);
-                    });
-                    mapRef.current = map;
-                }
-            }, []);
-            const guardar = (e) => {
-                e.preventDefault();
-                if(!form.coords) return alert("Seleccione ubicación en mapa");
-                onGuardar({ ...form, id: Date.now(), checklist: [] });
-                alert("Hito Guardado");
-                setForm({ nombre: '', lugar: '', fecha: '', coords: null, direccion: '', responsable: '', estado: 'Pendiente' });
-            }
-            return (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full">
-                    <div className="bg-white p-8 rounded-2xl shadow-xl border-t-4 border-ls-red">
-                        <h2 className="text-2xl font-black mb-6 text-ls-red flex gap-2"><i data-lucide="PenTool"></i> Nuevo Hito</h2>
-                        <form onSubmit={guardar} className="space-y-4">
-                            <input required className="w-full p-3 bg-gray-50 border rounded-lg" value={form.nombre} onChange={e=>setForm({...form, nombre:e.target.value})} placeholder="Nombre Evento" />
-                            <input required className="w-full p-3 bg-gray-50 border rounded-lg" value={form.responsable} onChange={e=>setForm({...form, responsable:e.target.value})} placeholder="Responsable (Nombre y Cargo)" />
-                            <select className="w-full p-3 bg-gray-50 border rounded-lg" value={form.estado} onChange={e=>setForm({...form, estado:e.target.value})}><option>Pendiente</option><option>En Desarrollo</option></select>
-                            <input type="datetime-local" required className="w-full p-3 bg-gray-50 border rounded-lg" value={form.fecha} onChange={e=>setForm({...form, fecha:e.target.value})} />
-                            <div className="bg-ls-gray p-3 rounded-lg text-sm font-bold text-gray-600">{form.direccion || "Seleccione en el mapa..."}</div>
-                            <button className="w-full bg-ls-red text-white font-black py-4 rounded-xl shadow-lg">Registrar</button>
-                        </form>
-                    </div>
-                    <div className="rounded-2xl overflow-hidden shadow-lg border border-gray-200"><div id="mapa-geo" className="map-container"></div></div>
-                </div>
-            );
-        }
-
-        function Protocolo({ autoridades, setAutoridades }) {
-            const [busqueda, setBusqueda] = useState("");
-            const filtrados = autoridades.filter(a => a.nombre.toLowerCase().includes(busqueda.toLowerCase()) || a.cargo.toLowerCase().includes(busqueda.toLowerCase()));
-            
-            return (
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 h-full">
-                    <div className="xl:col-span-2 bg-white p-6 rounded-2xl shadow-lg flex flex-col">
-                        <h2 className="font-black text-2xl flex gap-2 text-ls-red mb-4 uppercase"><i data-lucide="UserCheck"></i> Acreditación</h2>
-                        <input type="search" placeholder="Buscar..." className="w-full p-3 border rounded-xl mb-4 bg-gray-50" value={busqueda} onChange={e=>setBusqueda(e.target.value)} />
-                        <div className="flex-1 overflow-y-auto space-y-2 pr-2">
+                        {/* Listado Masivo con Fotos */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4 h-full overflow-y-auto pr-3 scroll-hide">
                             {filtrados.map(vip => (
-                                <div key={vip.id} onClick={() => setAutoridades(autoridades.map(a => a.id === vip.id ? { ...a, presente: !a.presente } : a))} className={`p-3 rounded-lg border cursor-pointer flex justify-between items-center transition ${vip.presente ? 'bg-red-50 border-ls-red ring-1 ring-ls-red' : 'hover:bg-gray-50'}`}>
+                                <div key={vip.id} onClick={() => { setAutoridades(autoridades.map(a => a.id === vip.id ? {...a, presente: !a.presente} : a)) }} className={`cursor-pointer p-4 md:p-5 rounded-xl border flex justify-between items-center transition-all ${vip.presente ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-gray-300'}`}>
                                     <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center font-bold text-gray-500 border">{vip.nombre.charAt(0)}</div>
-                                        <div><p className="font-bold text-sm">{vip.nombre}</p><p className="text-[10px] uppercase text-ls-red font-bold">{vip.cargo}</p></div>
+                                        <div className={`w-12 h-12 rounded-full overflow-hidden border-2 flex-shrink-0 flex items-center justify-center font-bold text-lg ${vip.presente ? 'bg-green-600 text-white border-green-700' : 'bg-gray-100 text-gray-400 border-gray-200'}`}>
+                                            {vip.foto ? <img src={vip.foto} className="w-full h-full object-cover" /> : vip.nombre.charAt(0)}
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-ls-stone text-sm leading-tight flex items-center gap-2">
+                                                {vip.nombre}
+                                                <span className="text-[9px] font-mono font-normal text-gray-400 bg-gray-100 px-1 rounded">Rango {vip.rango}</span>
+                                            </h4>
+                                            <p className="text-[10px] font-bold text-ls-red uppercase tracking-wide">{vip.cargo}</p>
+                                        </div>
                                     </div>
-                                    <i data-lucide={vip.presente ? 'Check' : 'Plus'} className={vip.presente ? 'text-ls-red' : 'text-gray-300'}></i>
+                                    <div className={`p-2 rounded-full border ${vip.presente ? 'bg-green-100 text-green-600' : 'bg-gray-50 text-gray-300'}`}>
+                                        <i data-lucide={vip.presente ? 'Check' : 'Plus'} size="20"></i>
+                                    </div>
                                 </div>
                             ))}
                         </div>
                     </div>
-                    <div className="xl:col-span-1"><VistaLocutor autoridades={autoridades} nombreLocutor="" soloLectura={true} /></div>
+
+                    {/* Resumen Lateral */}
+                    <div className="xl:col-span-1 sticky top-8 h-fit">
+                        <VistaLocutor autoridades={autoridades} miniature={true} />
+                    </div>
                 </div>
             );
         }
 
-        function VistaLocutor({ autoridades, nombreLocutor, setNombreLocutor, soloLectura }) {
-            const presentes = autoridades.filter(a => a.presente).sort((a, b) => a.precedencia - b.precedencia);
+        // --- VISTA: LOCUTOR (Ajuste de legibilidad móvil) ---
+        function VistaLocutor({ autoridades, miniature=false }) {
+            const vocativosDinamicos = useMemo(() => {
+                const presentes = autoridades.filter(a => a.presente);
+                if (presentes.length === 0) {
+                    return [{ texto: "Esperando acreditación de autoridades...", tipo: "alerta" }];
+                }
+                const preside = presentes[0];
+                const vocativoPreside = `${preside.vocativo} ${preside.cargo} ${preside.nombre}.`;
+                const lineas = [{ texto: `Saludamos a quien preside este acto, ` + vocativoPreside, tipo: "preside" }];
+                if (presentes.length > 1) {
+                    lineas.push({ texto: `Saludamos también a las siguientes autoridades presentes, ordenadas por estricto protocolo regional:`, tipo: "normal" });
+                    presentes.slice(1).forEach(vip => {
+                        lineas.push({ texto: `● ${vip.vocativo}, ${vip.cargo}, ${vip.nombre}.`, tipo: "lista" });
+                    });
+                }
+                return lineas;
+            }, [autoridades]);
+
             return (
-                <div className="bg-white p-6 rounded-2xl shadow-2xl border-t-8 border-ls-red h-full flex flex-col">
-                    <div className="flex justify-between items-center mb-6 border-b pb-4">
-                        <h3 className="text-ls-red font-black text-2xl uppercase"><i data-lucide="Mic2"></i> Pantalla Live</h3>
-                        <span className="bg-ls-yellow text-yellow-900 px-3 py-1 rounded-full text-xs font-bold animate-pulse">EN VIVO</span>
+                <div className={`bg-ls-stone text-white p-6 md:p-8 rounded-2xl shadow-2xl border-4 border-gray-900/50 min-h-[400px] flex flex-col ${miniature ? 'xl:h-[70vh]' : ''}`}>
+                    <div className="flex justify-between items-center mb-6 border-b border-gray-800 pb-3">
+                        <h3 className="text-ls-gold text-sm md:text-lg font-black uppercase flex items-center gap-2"><i data-lucide="Mic2"></i> PESTAÑA LOCUTOR (LIVE 2026)</h3>
+                        <span className="text-[10px] md:text-xs text-ls-gold font-bold bg-gray-900 px-3 py-1 rounded-full">{autoridades.filter(a => a.presente).length} VIP Presentes</span>
                     </div>
-                    {!soloLectura && <div className="mb-4"><input className="w-full bg-gray-50 p-2 rounded border font-bold text-center" placeholder="NOMBRE LOCUTOR..." value={nombreLocutor} onChange={e=>setNombreLocutor(e.target.value)} /></div>}
-                    <div className="flex-1 font-mono space-y-6 bg-ls-gray p-6 rounded-xl border overflow-y-auto">
-                         {nombreLocutor && <p className="text-xs text-right mb-2">🎙️ {nombreLocutor}</p>}
-                        {presentes.length === 0 ? <p className="text-center text-gray-400 mt-10">Esperando...</p> : (
-                            <>
-                                <div className="p-4 bg-white rounded-lg border-l-4 border-ls-red shadow-sm">
-                                    <p className="text-xl font-bold leading-relaxed">Saludamos a quien preside: <span className="text-ls-red">{presentes[0].vocativo} {presentes[0].cargo}, {presentes[0].nombre}</span>.</p>
+                    
+                    <div className="font-mono text-[11px] md:text-sm leading-relaxed space-y-4 flex-1 overflow-y-auto pr-3 scroll-hide pb-10">
+                        {vocativosDinamicos.map((item, index) => (
+                            <p key={index} className={item.tipo === "alerta" ? "text-red-400 italic" : item.tipo === "preside" ? "text-ls-gold text-lg md:text-2xl font-black animate-fade-in border-b border-gray-800 pb-4 mb-4" : item.tipo === "lista" ? "text-gray-200 animate-fade-in text-[10px] md:text-xs" : "text-gray-200 animate-fade-in"}>
+                                {item.texto.split(/([rs][\.\s]\s[\wáéíóúÁÉÍÓÚñÑ]+|Alcaldesa|[\wáéíóúÁÉÍÓÚñÑ]+\sde\s[\wáéíóúÁÉÍÓÚñÑ]+)/gi).map((part, i) => (
+                                    part.match(/^[rs][\.\s]\s[\wáéíóúÁÉÍÓÚñÑ]+/i) || part.match(/Alcaldesa/i) || part.match(/[\wáéíóúÁÉÍÓÚñÑ]+\sde\s[\wáéíóúÁÉÍÓÚñÑ]+/i)
+                                    ? <strong key={i} className="text-white font-black">{part}</strong>
+                                    : part
+                                ))}
+                            </p>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        // --- VISTA: TÉCNICA (Haz-in Masivo & Manual) ---
+        function TecnicaView({ checklist, setChecklist }) {
+            const [terminoBusqueda, setTerminoBusqueda] = useState("");
+            const [nuevaTarea, setNuevaTarea] = useState("");
+            const refScroll = useRef();
+
+            const filtrados = checklist.filter(t => t.tarea.toLowerCase().includes(terminoBusqueda.toLowerCase()));
+
+            const toggleTarea = (id) => {
+                setChecklist(checklist.map(tarea => tarea.id === id ? {...tarea, listo: !tarea.listo} : tarea));
+            };
+
+            const agregarTarea = (e) => {
+                e.preventDefault();
+                if (nuevaTarea.trim() === "") return;
+                const nueva = { id: Date.now(), tarea: nuevaTarea.trim(), listo: false };
+                setChecklist([...checklist, nueva]);
+                setNuevaTarea("");
+                setTimeout(() => refScroll.current.scrollTo(0, refScroll.current.scrollHeight), 100);
+            };
+
+            return (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
+                    {/* Checklist Masivo */}
+                    <div className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-100 flex flex-col h-[70vh]">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg md:text-2xl font-black text-ls-stone flex items-center gap-3"><i data-lucide="ListChecks" className="text-ls-red"></i> Logística de Evento (Haz-in Masivo)</h3>
+                            <span className="text-xs font-mono font-bold tracking-tight text-gray-500 bg-gray-50 px-3 py-1 rounded-full shadow-inner border border-gray-100">{checklist.filter(a => a.listo).length} de {checklist.length}</span>
+                        </div>
+                        <input type="search" placeholder="Buscar tarea..." value={terminoBusqueda} onChange={e => setTerminoBusqueda(e.target.value)} className="w-full pl-4 pr-4 py-4 md:py-4 bg-slate-50 border border-gray-200 rounded-xl outline-none focus:border-ls-red text-sm font-semibold mb-4" />
+                        <div ref={refScroll} className="flex-1 overflow-y-auto pr-3 space-y-2 scroll-hide">
+                            {filtrados.map(tarea => (
+                                <div key={tarea.id} onClick={() => toggleTarea(tarea.id)} className={`cursor-pointer p-4 rounded-xl border flex justify-between items-center transition-all ${tarea.listo ? 'border-green-300 bg-green-50' : 'border-gray-100 hover:border-gray-200'}`}>
+                                    <span className={`text-sm md:text-base ${tarea.listo ? 'line-through text-green-700 font-semibold' : 'text-slate-700'}`}>{tarea.tarea}</span>
+                                    <div className={`p-1.5 rounded-full border ${tarea.listo ? 'bg-green-100 text-green-600' : 'bg-gray-50 text-gray-200'}`}>
+                                        <i data-lucide={tarea.listo ? 'Check' : 'Square'} size="16"></i>
+                                    </div>
                                 </div>
-                                {presentes.length > 1 && <ul className="space-y-3 mt-4 pl-4 border-l-2 border-gray-300">{presentes.slice(1).map(p => <li key={p.id} className="text-sm font-bold text-gray-700">{p.vocativo}, {p.cargo}, {p.nombre}.</li>)}</ul>}
-                            </>
-                        )}
+                            ))}
+                        </div>
                     </div>
-                </div>
-            );
-        }
 
-        function Tecnica({ eventos, setEventos }) {
-            const [sel, setSel] = useState(eventos[0]);
-            const toggle = (taskId) => {
-                const nuevoCheck = sel.checklist.map(t => t.id === taskId ? { ...t, listo: !t.listo } : t);
-                const actualizado = { ...sel, checklist: nuevoCheck };
-                setEventos(eventos.map(ev => ev.id === sel.id ? actualizado : ev));
-                setSel(actualizado);
-            }
-            return (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-full">
-                    <div className="lg:col-span-1 space-y-2 overflow-y-auto">
-                        <h2 className="font-black text-xl text-ls-red mb-4">Hitos Activos</h2>
-                        {eventos.map(ev => <div key={ev.id} onClick={() => setSel(ev)} className={`p-4 rounded-xl cursor-pointer border ${sel.id === ev.id ? 'bg-ls-red text-white shadow-lg' : 'bg-white hover:bg-gray-50'}`}><h3 className="font-bold text-sm">{ev.nombre}</h3><p className="text-[10px] opacity-80">{ev.responsable}</p></div>)}
-                    </div>
-                    <div className="lg:col-span-2 bg-white p-8 rounded-2xl shadow-xl border-t-4 border-ls-yellow flex flex-col">
-                         <h2 className="font-black text-2xl mb-2">{sel.nombre}</h2>
-                         <p className="text-sm text-gray-500 mb-6 flex gap-2"><i data-lucide="User"></i> Resp: {sel.responsable}</p>
-                         <h3 className="font-bold text-lg mb-4 text-ls-yellow">Checklist Técnica</h3>
-                         <div className="space-y-2 flex-1 overflow-y-auto">
-                            {sel.checklist.map(t => <div key={t.id} onClick={() => toggle(t.id)} className={`p-4 rounded-xl border cursor-pointer flex justify-between ${t.listo ? 'bg-green-50 border-green-500 text-green-700' : 'bg-white hover:bg-gray-50'}`}><span className={`font-bold ${t.listo ? 'line-through' : ''}`}>{t.tarea}</span>{t.listo ? <i data-lucide="CheckCircle2"></i> : <div className="w-5 h-5 rounded-full border-2 border-gray-300"></div>}</div>)}
-                         </div>
-                    </div>
+                    {/* Añadir Manual */}
+                    <form onSubmit={agregarTarea} className="bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-100 flex flex-col h-fit sticky top-8">
+                        <h3 className="text-lg font-black text-ls-stone flex items-center gap-3 mb-6"><i data-lucide="PlusSquare" className="text-ls-red"></i> Añadir Variable Manual</h3>
+                        <textarea value={nuevaTarea} onChange={e => setNuevaTarea(e.target.value)} placeholder="Ej: Confirmar presencia de Bomberos..." className="w-full p-4 h-32 bg-slate-50 border border-gray-200 rounded-xl outline-none focus:border-ls-red text-sm mb-4" required></textarea>
+                        <button type="submit" className="w-full bg-ls-red text-white py-4 rounded-xl font-bold flex items-center justify-center gap-3"><i data-lucide="PlusCircle"></i> Añadir a Checklist</button>
+                    </form>
                 </div>
             )
         }
 
-        const MenuBtn = ({ icon, label, active, onClick }) => (
-            <button onClick={onClick} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-1 transition-all ${active ? 'bg-ls-red text-white shadow-md' : 'text-gray-500 hover:bg-ls-red/5 hover:text-ls-red'}`}><i data-lucide={icon} size="18"></i><span className="text-xs font-bold uppercase tracking-wide">{label}</span></button>
-        );
+        // --- NUEVA VISTA: ADMINISTRACIÓN BASE (CRUD Masivo & Fotos) ---
+        function AdminBaseView({ autoridades, setAutoridades }) {
+            const [terminoBusqueda, setTerminoBusqueda] = useState("");
+            const [editandoVip, setEditandoVip] = useState(null); // null, 'nuevo', o el objeto autoridad
+
+            const filtrados = autoridades.filter(a => a.nombre.toLowerCase().includes(terminoBusqueda.toLowerCase()) || a.cargo.toLowerCase().includes(terminoBusqueda.toLowerCase()));
+
+            const guardarVIP = (vipActualizado) => {
+                let nuevaLista;
+                if (autoridades.some(a => a.id === vipActualizado.id)) {
+                    // Edición
+                    nuevaLista = autoridades.map(a => a.id === vipActualizado.id ? vipActualizado : a);
+                } else {
+                    // Nuevo
+                    nuevaLista = [...autoridades, vipActualizado];
+                }
+                const sorted = nuevaLista.sort((a, b) => a.rango - b.rango);
+                setAutoridades(sorted);
+                // Aquí iría el guardar al archivo JSON (requiere servidor back-end)
+                setEditandoVip(null);
+            };
+
+            return (
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                    {/* Listado Principal */}
+                    <div className="xl:col-span-2 space-y-4 bg-white p-6 md:p-8 rounded-2xl shadow-lg border border-gray-100 flex flex-col h-[70vh]">
+                        <div className="flex justify-between items-center mb-4">
+                            <h3 className="text-lg md:text-2xl font-black text-ls-stone flex items-center gap-3"><i data-lucide="Database" className="text-ls-stone"></i> Administración Base de Autoridades Coquimbo 2026</h3>
+                            <button onClick={() => setEditandoVip('nuevo')} className="bg-ls-stone text-ls-gold text-xs font-bold px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2">
+                                <i data-lucide="UserPlus" size="14"></i> Sumar Autoridad
+                            </button>
+                        </div>
+                        <input type="search" placeholder="Buscar por nombre, cargo, rango..." value={terminoBusqueda} onChange={e => setTerminoBusqueda(e.target.value)} className="w-full pl-4 pr-4 py-4 md:py-4 bg-slate-50 border border-gray-200 rounded-xl outline-none focus:border-ls-stone text-sm font-semibold mb-4" />
+                        <div className="flex-1 overflow-y-auto pr-3 space-y-2 scroll-hide">
+                            {filtrados.map(vip => (
+                                <div key={vip.id} className="p-4 rounded-xl border border-gray-100 flex justify-between items-center transition-all bg-gray-50/50">
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-12 h-12 rounded-full overflow-hidden border-2 flex items-center justify-center font-bold text-lg bg-gray-100 text-gray-400 border-gray-200`}>
+                                            {vip.foto ? <img src={vip.foto} className="w-full h-full object-cover" /> : vip.nombre.charAt(0)}
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold text-ls-stone text-sm leading-tight flex items-center gap-2">
+                                                {vip.nombre}
+                                                <span className="text-[9px] font-mono font-normal text-gray-400 bg-gray-100 px-1 rounded">Rango {vip.rango}</span>
+                                            </h4>
+                                            <p className="text-[10px] font-bold text-ls-red uppercase tracking-wide">{vip.cargo}</p>
+                                        </div>
+                                    </div>
+                                    <button onClick={() => setEditandoVip(vip)} className="text-ls-stone/50 hover:text-ls-stone p-2 rounded-full hover:bg-white transition">
+                                        <i data-lucide="Edit2" size="16"></i>
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Editor Lateral */}
+                    <div className="xl:col-span-1 sticky top-8 h-[70vh] flex flex-col">
+                        <VIPEditor vip={editandoVip} autoridades={autoridades} onGuardar={guardarVIP} onCancelar={() => setEditandoVip(null)} />
+                    </div>
+                </div>
+            );
+        }
+
+        // COMPONENTE: VIP EDITOR (Añadir/Editar con Fotos)
+        function VIPEditor({ vip, autoridades, onGuardar, onCancelar }) {
+            const inputFotoRef = useRef();
+            const [localFoto, setLocalFoto] = useState("");
+            
+            // Estado local del formulario
+            const [formState, setFormState] = useState({ id: Date.now(), nombre: '', cargo: '', rango: 99, vocativo: 'Sr.', categoria: '', presente: false, foto: "", historia: "" });
+
+            useEffect(() => {
+                if (vip === 'nuevo') {
+                    setFormState({ id: Date.now(), nombre: '', cargo: '', rango: autoridades.length + 10, vocativo: 'Sr.', categoria: '', presente: false, foto: "", historia: "" });
+                    setLocalFoto("");
+                } else if (vip) {
+                    setFormState(vip);
+                    setLocalFoto(vip.foto || "");
+                }
+            }, [vip]);
+
+            const manejarCargaFoto = (event) => {
+                const archivo = event.target.files[0];
+                if (archivo) {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        setLocalFoto(reader.result); // Base64 para visualización
+                        setFormState(prev => ({ ...prev, foto: reader.result })); // Guardar como Base64 (simplificación)
+                    };
+                    reader.readAsDataURL(archivo);
+                }
+            };
+
+            const onSubmit = (e) => {
+                e.preventDefault();
+                onGuardar(formState);
+            };
+
+            if (!vip) {
+                return (
+                    <div className="bg-white p-8 rounded-2xl shadow-lg border-2 border-dashed border-gray-100 h-full flex flex-col items-center justify-center text-center text-gray-400 space-y-4">
+                        <i data-lucide="UserPlus" size="48"></i>
+                        <p className="font-semibold text-sm">Seleccione una autoridad de la lista masiva para editar sus detalles, o haga clic en "Sumar Autoridad" para incorporar una nueva al sistema.</p>
+                        <p className="text-xs text-red-500 font-bold">Importante: El guardado es simulado, los cambios no persisten en el archivo JSON real sin back-end.</p>
+                    </div>
+                );
+            }
+
+            return (
+                <form onSubmit={onSubmit} className="bg-white p-6 md:p-8 rounded-2xl shadow-lg flex flex-col h-full space-y-4 border border-gray-100">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-black text-ls-stone flex items-center gap-3"><i data-lucide="DatabaseZap" className="text-ls-stone"></i> Editor de Detalles VIP</h3>
+                        <button type="button" onClick={onCancelar} className="text-gray-400 hover:text-ls-red"><i data-lucide="X" size="20"></i></button>
+                    </div>
+
+                    {/* Foto y Nombre/Cargo */}
+                    <div className="flex items-center gap-4 border-b border-gray-100 pb-4">
+                        <div className="w-20 h-20 rounded-full border-4 border-slate-100 overflow-hidden bg-gray-50 group relative flex items-center justify-center font-black text-2xl text-gray-300">
+                            {localFoto ? <img src={localFoto} className="w-full h-full object-cover" /> : formState.nombre.charAt(0)}
+                            <input type="file" ref={inputFotoRef} accept="image/*" onChange={manejarCargaFoto} className="hidden" />
+                            <button type="button" onClick={() => inputFotoRef.current.click()} className="absolute inset-0 bg-black/60 text-white opacity-0 group-hover:opacity-100 transition flex items-center justify-center text-[10px] font-bold uppercase p-2 text-center">Subir Foto</button>
+                        </div>
+                        <div className="flex-1 space-y-2">
+                            <input type="text" placeholder="Nombre completo" value={formState.nombre} onChange={e => setFormState({...formState, nombre: e.target.value})} className="w-full p-2.5 border rounded-lg text-sm" required />
+                            <input type="text" placeholder="Cargo protocolar oficial" value={formState.cargo} onChange={e => setFormState({...formState, cargo: e.target.value})} className="w-full p-2.5 border rounded-lg text-sm text-ls-red font-semibold" required />
+                        </div>
+                    </div>
+
+                    {/* Protocolo */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <div>
+                            <label className="text-[10px] font-bold text-gray-500 uppercase">Rango (Orden Protocolar)</label>
+                            <input type="number" placeholder="Ej: 31" value={formState.rango} onChange={e => setFormState({...formState, rango: parseInt(e.target.value)})} className="w-full p-2.5 border rounded-lg font-mono" required />
+                        </div>
+                        <div>
+                            <label className="text-[10px] font-bold text-gray-500 uppercase">Vocativo Oficial</label>
+                            <input type="text" placeholder="Ej: Honorable Senador" value={formState.vocativo} onChange={e => setFormState({...formState, vocativo: e.target.value})} className="w-full p-2.5 border rounded-lg text-sm" />
+                        </div>
+                    </div>
+                    <div>
+                        <label className="text-[10px] font-bold text-gray-500 uppercase">Categoría</label>
+                        <input type="text" placeholder="Ej: Municipal Elqui" value={formState.categoria} onChange={e => setFormState({...formState, categoria: e.target.value})} className="w-full p-2.5 border rounded-lg text-sm" />
+                    </div>
+
+                    {/* Histórico/Biografía */}
+                    <div className="flex-1 flex flex-col">
+                        <label className="text-[10px] font-bold text-gray-500 uppercase">Datos Históricos / Notas del Sujeto</label>
+                        <textarea value={formState.historia} onChange={e => setFormState({...formState, historia: e.target.value})} placeholder="Ej: Alcaldesa de La Serena (2022-2026). Militante de..." className="w-full flex-1 p-3 bg-slate-50 border border-gray-100 rounded-lg text-xs scroll-hide"></textarea>
+                    </div>
+
+                    <div className="flex gap-3 pt-4 border-t border-gray-100">
+                        <button type="submit" className="flex-1 bg-ls-stone text-ls-gold py-4 rounded-xl font-bold flex items-center justify-center gap-3"><i data-lucide="Save"></i> Actualizar Base DB</button>
+                        <button type="button" onClick={onCancelar} className="px-5 py-4 rounded-xl bg-gray-100 text-gray-500 font-bold hover:bg-gray-200">Cancelar</button>
+                    </div>
+                </form>
+            );
+        }
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<SerenitoApp />);
-        setTimeout(() => lucide.createIcons(), 500);
-        setInterval(() => lucide.createIcons(), 2000);
+        
+        // Cargar Iconos Lucide
+        setTimeout(() => lucide.createIcons(), 200);
+        setInterval(() => lucide.createIcons(), 1000);
+
     </script>
 </body>
 </html>
