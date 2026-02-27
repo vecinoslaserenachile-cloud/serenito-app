@@ -1,42 +1,27 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>S.E.R.E.N.I.T.O. System Preview</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.3/dist/tailwind.min.css" rel="stylesheet">
-</head>
-<body class="bg-gray-100 text-gray-900">
-    <div class="container mx-auto p-4">
-        <header class="text-center">
-            <h1 class="text-4xl font-bold">S.E.R.E.N.I.T.O. System</h1>
-            <p class="text-lg mt-2">A preview of the React application with Tailwind CSS and Lucide Icons</p>
-        </header>
-        <main class="mt-8">
-            <div class="flex flex-col items-center">
-                <div class="w-full max-w-md bg-white shadow-md rounded-lg p-5">
-                    <h2 class="text-2xl font-semibold">Features</h2>
-                    <ul class="list-disc list-inside mt-4">
-                        <li>Responsive Design</li>
-                        <li>Custom Icons with Lucide</li>
-                        <li>Component-Based Architecture with React</li>
-                    </ul>
-                </div>
-                <div class="mt-5">
-                    <h2 class="text-2xl font-semibold">Demo</h2>
-                    <p class="mt-2">Click the button below to view the demo.</p>
-                    <button class="bg-blue-500 text-white py-2 px-4 rounded-lg mt-2"><i class="lucide lucide-play"></i> View Demo</button>
-                </div>
-            </div>
-        </main>
-    </div>
-    <script src="https://unpkg.com/react/umd/react.development.js" crossorigin></script>
-    <script src="https://unpkg.com/react-dom/umd/react-dom.development.js" crossorigin></script>
-    <script src="https://unpkg.com/@lucide/icons/dist/lucide.umd.js" crossorigin></script>
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>S.E.R.E.N.I.T.O. | Gestión La Serena</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
     <script>
-        // Basic React component
-        const App = () => <h1>Hello from S.E.R.E.N.I.T.O. System!</h1>;
-        ReactDOM.render(<App />, document.getElementById('root'));
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              'muni-azul': '#1e3a8a', // Azul Oscuro
+              'muni-oro': '#fbbf24',  // Dorado Alertas
+            }
+          }
+        }
+      }
     </script>
-</body>
+  </head>
+  <body class="bg-slate-50 text-slate-900">
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>
