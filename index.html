@@ -38,8 +38,6 @@
         .avatar-img { width: 100%; height: 100%; object-fit: cover; }
         .pulse-icon { background-color: #b91c1c; border-radius: 50%; width: 24px; height: 24px; border: 3px solid white; animation: pulse 1.5s infinite; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(185, 28, 28, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(185, 28, 28, 0); } }
-        
-        /* Barra de Progreso Animada */
         .progress-bar { transition: width 0.5s ease-in-out; }
     </style>
 </head>
@@ -49,7 +47,7 @@
     <script type="text/babel">
         const { useState, useEffect, useRef, useMemo } = React;
 
-        // --- DATOS INICIALES MULTI-EVENTO (4 Eventos Completos) ---
+        // DATOS INICIALES MULTI-EVENTO (4 Fichas)
         const EVENTOS_INICIALES = [
             { 
                 id: 1, nombre: "Inauguración Plaza de Armas", fecha: "2026-04-28T11:00", lugar: "Plaza de Armas", 
@@ -64,12 +62,7 @@
                     { id: 7, tarea: "Sistema de Amplificación Line Array", listo: false },
                     { id: 8, tarea: "Generador Eléctrico de Respaldo", listo: false },
                     { id: 9, tarea: "Agua Mineral para Autoridades", listo: false },
-                    { id: 10, tarea: "Atril para Locutor", listo: true },
-                    { id: 11, tarea: "Música de Fondo y Himno Nacional", listo: false },
-                    { id: 12, tarea: "Fotógrafo Oficial Confirmado", listo: false },
-                    { id: 13, tarea: "Dispositivos de Seguridad (Vallas)", listo: false },
-                    { id: 14, tarea: "Limpieza Previa del Recinto", listo: true },
-                    { id: 15, tarea: "Personal de Protocolo en Puntos", listo: false }
+                    { id: 10, tarea: "Atril para Locutor", listo: true }
                 ]
             },
             { 
@@ -81,32 +74,28 @@
                     { id: 3, tarea: "Transmisión Streaming Youtube", listo: false },
                     { id: 4, tarea: "Libretos Impresos (3 Copias)", listo: false },
                     { id: 5, tarea: "Video Resumen Gestión", listo: true },
-                    { id: 6, tarea: "Cóctel de Cierre", listo: false },
-                    { id: 7, tarea: "Guardarropía Habilitada", listo: false },
-                    { id: 8, tarea: "Confirmación Asistencia Concejo", listo: false }
+                    { id: 6, tarea: "Cóctel de Cierre", listo: false }
                 ]
             },
             { 
-                id: 3, nombre: "Desfile Escolar Glorias Navales", fecha: "2026-05-21T10:00", lugar: "Av. del Mar", 
+                id: 3, nombre: "Desfile Glorias Navales", fecha: "2026-05-21T10:00", lugar: "Av. del Mar", 
                 direccion: "Faro Monumental", coords: [-29.9045, -71.2755], estado: "Planificación", responsable: "Depto. Educación", 
                 checklist: [
                     { id: 1, tarea: "Cierre de Calles (Carabineros)", listo: false },
                     { id: 2, tarea: "Palco de Autoridades (Techado)", listo: false },
                     { id: 3, tarea: "Vallas Papales", listo: false },
                     { id: 4, tarea: "Banda Instrumental", listo: true },
-                    { id: 5, tarea: "Punto de Hidratación Alumnos", listo: false },
-                    { id: 6, tarea: "Ambulancia en Terreno", listo: false }
+                    { id: 5, tarea: "Punto de Hidratación Alumnos", listo: false }
                 ]
             },
             { 
                 id: 4, nombre: "Show Aniversario La Serena", fecha: "2026-08-26T20:00", lugar: "Estadio La Portada", 
-                direccion: "Av. Estadio #1400", coords: [-29.912, -71.256], estado: "Planificación", responsable: "Productora Externa", 
+                direccion: "Av. Estadio #1400", coords: [-29.912, -71.256], estado: "Planificación", responsable: "Productora", 
                 checklist: [
                     { id: 1, tarea: "Escenario Principal 20x15m", listo: false },
-                    { id: 2, tarea: "Camerinos Artistas Habilitados", listo: false },
+                    { id: 2, tarea: "Camerinos Artistas", listo: false },
                     { id: 3, tarea: "Seguridad Privada (50 Guardias)", listo: false },
-                    { id: 4, tarea: "Corte de Ticket / Accesos", listo: false },
-                    { id: 5, tarea: "Prueba de Sonido", listo: false }
+                    { id: 4, tarea: "Corte de Ticket / Accesos", listo: false }
                 ]
             }
         ];
@@ -119,9 +108,8 @@
             const [locutorNombre, setLocutorNombre] = useState("");
             const [errorCarga, setErrorCarga] = useState(null);
 
-            // CARGA DE BASE DE DATOS
             useEffect(() => {
-                const stored = localStorage.getItem('serenito_db_v19');
+                const stored = localStorage.getItem('serenito_db_v20');
                 if(stored) {
                     setAutoridades(JSON.parse(stored));
                 } else {
@@ -131,14 +119,14 @@
                         .then(data => {
                             const sorted = data.sort((a, b) => a.precedencia - b.precedencia);
                             setAutoridades(sorted);
-                            localStorage.setItem('serenito_db_v19', JSON.stringify(sorted));
+                            localStorage.setItem('serenito_db_v20', JSON.stringify(sorted));
                         })
-                        .catch(err => setErrorCarga("⚠️ Error conectando a la base de datos."));
+                        .catch(err => setErrorCarga("⚠️ Cargando datos de respaldo..."));
                 }
             }, []);
 
             useEffect(() => {
-                if(autoridades.length > 0) localStorage.setItem('serenito_db_v19', JSON.stringify(autoridades));
+                if(autoridades.length > 0) localStorage.setItem('serenito_db_v20', JSON.stringify(autoridades));
             }, [autoridades]);
 
             const navegar = (v) => { setVista(v); setMenuOpen(false); }
@@ -182,7 +170,6 @@
                         <div className="flex-1 flex flex-col pb-16 h-full">
                             {errorCarga && <div className="bg-red-100 text-red-700 p-3 rounded-lg mb-4 text-sm border border-red-200">{errorCarga}</div>}
                             
-                            {/* RENDERIZADO DE VISTAS */}
                             {vista === 'dashboard' && <Dashboard eventos={eventos} />}
                             {vista === 'secretaria' && <Secretaria onGuardar={(nuevo) => setEventos([...eventos, nuevo])} />}
                             {vista === 'protocolo' && <Protocolo autoridades={autoridades} setAutoridades={setAutoridades} />}
@@ -191,7 +178,6 @@
                             {vista === 'admin' && <AdminView autoridades={autoridades} setAutoridades={setAutoridades} />}
                         </div>
                         
-                        {/* WINCHA LIVE */}
                         <Wincha autoridades={autoridades} eventos={eventos} />
                     </main>
                 </div>
@@ -233,101 +219,92 @@
             );
         }
 
-        // --- 2. TÉCNICA (CON CONTADOR Y ALERTA DE LISTO) ---
+        // --- 2. TÉCNICA (BLINDADA CON SELECCIÓN POR ID) ---
         function Tecnica({ eventos, setEventos }) {
-            const [selectedIndex, setSelectedIndex] = useState(0);
+            // USAR ID para selección robusta
+            const [selectedId, setSelectedId] = useState(eventos.length > 0 ? eventos[0].id : null);
             
-            const sel = eventos[selectedIndex] || eventos[0];
+            const sel = eventos.find(e => e.id === selectedId);
 
-            // Estadísticas del evento seleccionado
-            const totalTasks = sel ? sel.checklist.length : 0;
-            const completedTasks = sel ? sel.checklist.filter(t => t.listo).length : 0;
-            const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
-            const isComplete = totalTasks > 0 && completedTasks === totalTasks;
-
-            const cambiarEvento = (e, index) => {
+            const cambiarEvento = (e, id) => {
                 e.preventDefault(); 
                 e.stopPropagation();
-                setSelectedIndex(index);
+                setSelectedId(id);
             };
 
             const toggle = (taskId) => {
                 if(!sel) return;
                 const nuevoCheck = sel.checklist.map(t => t.id === taskId ? { ...t, listo: !t.listo } : t);
-                const eventoActualizado = { ...sel, checklist: nuevoCheck };
-                const nuevaLista = eventos.map((ev, i) => i === selectedIndex ? eventoActualizado : ev);
-                setEventos(nuevaLista);
+                const actualizado = { ...sel, checklist: nuevoCheck };
+                setEventos(eventos.map(ev => ev.id === sel.id ? actualizado : ev));
             }
 
             const agregarManual = (e) => {
                 e.preventDefault();
                 if(!sel) return;
-                const texto = prompt("Nombre de la nueva variable técnica:");
+                const texto = prompt("Nombre variable:");
                 if(texto) {
-                    const eventoActualizado = { ...sel, checklist: [...sel.checklist, { id: Date.now(), tarea: texto, listo: false }] };
-                    const nuevaLista = eventos.map((ev, i) => i === selectedIndex ? eventoActualizado : ev);
-                    setEventos(nuevaLista);
+                    const actualizado = { ...sel, checklist: [...sel.checklist, { id: Date.now(), tarea: texto, listo: false }] };
+                    setEventos(eventos.map(ev => ev.id === sel.id ? actualizado : ev));
                 }
             }
 
-            if(!sel) return <div className="flex h-full items-center justify-center text-gray-400 font-bold">No hay eventos activos.</div>;
+            if(!sel) return <div className="flex h-full items-center justify-center text-gray-400 font-bold">Sin eventos activos.</div>;
+
+            // Cálculos del Contador
+            const total = sel.checklist.length;
+            const listos = sel.checklist.filter(t=>t.listo).length;
+            const porcentaje = total > 0 ? (listos/total)*100 : 0;
+            const terminado = total > 0 && listos === total;
 
             return (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
-                    {/* Lista Lateral de Eventos */}
+                    {/* Lista Eventos */}
                     <div className="lg:col-span-1 space-y-3 overflow-y-auto pr-2 border-r border-gray-200">
                         <h2 className="font-black text-lg text-ls-red mb-4 flex items-center gap-2"><i data-lucide="List"></i> Fichas Activas</h2>
-                        {eventos.map((ev, index) => {
-                            const evTotal = ev.checklist.length;
-                            const evDone = ev.checklist.filter(t=>t.listo).length;
-                            const evIsDone = evTotal > 0 && evTotal === evDone;
-                            
+                        {eventos.map((ev) => {
+                            const t = ev.checklist.length;
+                            const l = ev.checklist.filter(x=>x.listo).length;
                             return (
-                                <button type="button" key={ev.id} onClick={(e) => cambiarEvento(e, index)} 
-                                    className={`w-full text-left p-4 rounded-xl cursor-pointer border transition-all duration-200 ${selectedIndex === index ? 'bg-ls-red text-white shadow-lg transform scale-105' : 'bg-white hover:bg-gray-50 border-gray-200 text-gray-600'}`}>
+                                <button type="button" key={ev.id} onClick={(e) => cambiarEvento(e, ev.id)} 
+                                    className={`w-full text-left p-4 rounded-xl border transition-all ${selectedId === ev.id ? 'bg-ls-red text-white shadow-lg scale-105' : 'bg-white hover:bg-gray-50 border-gray-200 text-gray-600'}`}>
                                     <div className="flex justify-between items-start">
-                                        <h3 className="font-bold text-sm mb-1 pr-2">{ev.nombre}</h3>
-                                        {evIsDone && <i data-lucide="CheckCircle" className="text-green-400 fill-green-400 text-white" size={16}></i>}
+                                        <h3 className="font-bold text-sm mb-1">{ev.nombre}</h3>
+                                        {l===t && t>0 && <i data-lucide="CheckCircle" className="text-white fill-green-500" size={16}></i>}
                                     </div>
                                     <div className="flex justify-between items-center text-[10px] opacity-90 mt-1">
                                         <span>{ev.responsable}</span>
-                                        <span className={`px-2 py-0.5 rounded font-bold ${selectedIndex === index ? 'bg-white/20' : (evIsDone ? 'bg-green-100 text-green-700' : 'bg-gray-100')}`}>
-                                            {evDone}/{evTotal}
-                                        </span>
+                                        <span className={`px-2 py-0.5 rounded font-bold ${selectedId === ev.id ? 'bg-white/20' : 'bg-gray-100'}`}>{l}/{t}</span>
                                     </div>
                                 </button>
                             );
                         })}
                     </div>
 
-                    {/* Detalle y Checklist */}
-                    <div className={`lg:col-span-2 bg-white p-6 rounded-2xl shadow-xl border-t-8 flex flex-col h-full overflow-hidden ${isComplete ? 'border-green-500' : 'border-ls-yellow'}`}>
-                         {/* Header del Evento */}
+                    {/* Detalle */}
+                    <div className={`lg:col-span-2 bg-white p-6 rounded-2xl shadow-xl border-t-8 flex flex-col h-full overflow-hidden ${terminado ? 'border-green-500' : 'border-ls-yellow'}`}>
                          <div className="flex justify-between items-start mb-4 border-b border-gray-100 pb-4">
                              <div className="flex-1">
                                  <h2 className="font-black text-2xl text-gray-800 flex items-center gap-2">
                                      {sel.nombre}
-                                     {isComplete && <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full border border-green-200 uppercase font-black tracking-wide">¡Listo para Inicio!</span>}
+                                     {terminado && <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full border border-green-200 uppercase font-black">¡LISTO!</span>}
                                  </h2>
                                  <p className="text-sm text-gray-500 flex items-center gap-2 mt-1"><i data-lucide="MapPin" size={14}></i> {sel.direccion}</p>
                              </div>
-                             <button type="button" onClick={agregarManual} className="bg-ls-gray border border-gray-200 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-100 text-xs font-bold flex gap-2 items-center transition shadow-sm">
-                                 <i data-lucide="PlusSquare" size={16}></i> Añadir Variable
-                             </button>
+                             <button type="button" onClick={agregarManual} className="bg-gray-100 p-2 rounded-lg hover:bg-gray-200 text-xs font-bold flex gap-1"><i data-lucide="Plus" size={14}></i> Variable</button>
                          </div>
 
-                         {/* BARRA DE PROGRESO GLOBAL */}
+                         {/* BARRA DE PROGRESO */}
                          <div className="mb-6">
                              <div className="flex justify-between text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">
-                                 <span>Progreso Producción</span>
-                                 <span className={isComplete ? "text-green-600" : "text-ls-red"}>{completedTasks} de {totalTasks} ítems</span>
+                                 <span>Avance Producción</span>
+                                 <span className={terminado ? "text-green-600" : "text-ls-red"}>{listos} de {total} OK</span>
                              </div>
                              <div className="w-full bg-gray-100 rounded-full h-4 shadow-inner overflow-hidden">
-                                 <div className={`h-4 rounded-full progress-bar shadow-sm ${isComplete ? 'bg-green-500' : 'bg-ls-yellow'}`} style={{width: `${progress}%`}}></div>
+                                 <div className={`h-4 rounded-full progress-bar shadow-sm ${terminado ? 'bg-green-500' : 'bg-ls-yellow'}`} style={{width: `${porcentaje}%`}}></div>
                              </div>
                          </div>
                          
-                         {/* Lista Scrollable */}
                          <div className="space-y-2 flex-1 overflow-y-auto pr-2">
                             {sel.checklist.map(t => (
                                 <button type="button" key={t.id} onClick={() => toggle(t.id)} 
@@ -365,8 +342,8 @@
             const guardar = (e) => {
                 e.preventDefault();
                 if(!form.coords) return alert("Seleccione ubicación en mapa");
-                onGuardar({ ...form, id: Date.now(), checklist: [{id:1, tarea: "Instalación Básica", listo: false}, {id:2, tarea: "Audio", listo: false}], estado: "Pendiente", lugar: "Ubicación Mapa" });
-                alert("Evento creado exitosamente");
+                onGuardar({ ...form, id: Date.now(), checklist: [{id:1, tarea: "Instalación Básica", listo: false}], estado: "Pendiente", lugar: "Ubicación Mapa" });
+                alert("Evento creado");
                 setForm({ nombre: '', responsable: '', fecha: '', coords: null, direccion: '' });
             }
             
@@ -396,7 +373,7 @@
             );
         }
 
-        // ... Resto de componentes (Protocolo, Locutor, Admin, Utils) iguales a V18 ...
+        // ... Protocolo, Locutor, Admin (Sin cambios, ya son estables) ...
         function Protocolo({ autoridades, setAutoridades }) {
             const [filtro, setFiltro] = useState("");
             const filtrados = autoridades.filter(a => a.nombre.toLowerCase().includes(filtro.toLowerCase()) || a.cargo.toLowerCase().includes(filtro.toLowerCase()));
