@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>S.E.R.E.N.I.T.O. | Gestión 2026</title>
+    <title>EVENTOS Y RR.PP. IMLS | La Serena 2026</title>
     
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2210%22 fill=%22%23b91c1c%22 /><text x=%2250%22 y=%2275%22 font-family=%22Arial%22 font-size=%2270%22 font-weight=%22bold%22 fill=%22white%22 text-anchor=%22middle%22>S</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2210%22 fill=%22%23b91c1c%22 /><text x=%2250%22 y=%2275%22 font-family=%22Arial%22 font-size=%2270%22 font-weight=%22bold%22 fill=%22white%22 text-anchor=%22middle%22>LS</text></svg>">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -24,7 +24,7 @@
             colors: {
               'ls-red': '#b91c1c', 'ls-red-dark': '#7f1d1d', 'ls-yellow': '#facc15', 'ls-gray': '#f8fafc',
             },
-            animation: { 'marquee': 'marquee 40s linear infinite' },
+            animation: { 'marquee': 'marquee 45s linear infinite' },
             keyframes: { marquee: { '0%': { transform: 'translateX(100%)' }, '100%': { transform: 'translateX(-100%)' } } }
           }
         }
@@ -43,17 +43,11 @@
     <script type="text/babel">
         const { useState, useEffect, useRef, useMemo } = React;
 
-        // DATOS INICIALES ROBUSTOS
         const EVENTOS_INICIALES = [
             { 
                 id: 1, nombre: "Inauguración Plaza de Armas", fecha: "2026-04-28T11:00", lugar: "Plaza de Armas", 
                 direccion: "Gregorio Cordovez #400", coords: [-29.9027, -71.2520], estado: "En Desarrollo", responsable: "Arq. María González", 
                 checklist: [{ id: 1, tarea: "Corte de Cinta", listo: false }, { id: 2, tarea: "Audio y Micrófono", listo: true }] 
-            },
-            { 
-                id: 2, nombre: "Campeonato Escolar", fecha: "2026-05-02T09:00", lugar: "Estadio La Portada", 
-                direccion: "Av. Estadio #100", coords: [-29.912, -71.256], estado: "Pendiente", responsable: "Deportes Muni", 
-                checklist: [{ id: 1, tarea: "Arbitraje", listo: false }] 
             }
         ];
 
@@ -65,9 +59,8 @@
             const [locutorNombre, setLocutorNombre] = useState("");
             const [errorCarga, setErrorCarga] = useState(null);
 
-            // CARGA DE BASE DE DATOS (CON PERSISTENCIA LOCAL PARA DEMO)
             useEffect(() => {
-                const stored = localStorage.getItem('serenito_db_v14');
+                const stored = localStorage.getItem('serenito_db_v15');
                 if(stored) {
                     setAutoridades(JSON.parse(stored));
                 } else {
@@ -76,15 +69,14 @@
                         .then(data => {
                             const sorted = data.sort((a, b) => a.precedencia - b.precedencia);
                             setAutoridades(sorted);
-                            localStorage.setItem('serenito_db_v14', JSON.stringify(sorted));
+                            localStorage.setItem('serenito_db_v15', JSON.stringify(sorted));
                         })
                         .catch(err => setErrorCarga("⚠️ Error cargando JSON."));
                 }
             }, []);
 
-            // Guardar cambios automáticamente
             useEffect(() => {
-                if(autoridades.length > 0) localStorage.setItem('serenito_db_v14', JSON.stringify(autoridades));
+                if(autoridades.length > 0) localStorage.setItem('serenito_db_v15', JSON.stringify(autoridades));
             }, [autoridades]);
 
             const navegar = (v) => { setVista(v); setMenuOpen(false); }
@@ -95,9 +87,9 @@
                     {/* SIDEBAR */}
                     <aside className={`fixed inset-y-0 left-0 z-40 w-72 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out flex flex-col shadow-2xl ${menuOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0`}>
                         <div className="p-8 flex flex-col items-center bg-ls-red text-white">
-                            <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center font-black text-3xl text-ls-red shadow-lg mb-2 border-4 border-ls-yellow">S</div>
-                            <h1 className="text-xl font-black tracking-tighter">S.E.R.E.N.I.T.O.</h1>
-                            <p className="text-[10px] uppercase font-bold text-ls-yellow mt-1">Gestión 2026</p>
+                            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center font-black text-4xl text-ls-red shadow-lg mb-2 border-4 border-ls-yellow">LS</div>
+                            <h1 className="text-sm font-black tracking-tight text-center leading-tight">EVENTOS Y RR.PP.<br/><span className="text-lg">IMLS</span></h1>
+                            <p className="text-[9px] uppercase font-bold text-ls-yellow mt-1">Gestión 2026</p>
                         </div>
                         <nav className="flex-1 py-4 px-4 space-y-1 overflow-y-auto bg-gray-50">
                             <Label text="Centro de Mando" />
@@ -119,7 +111,7 @@
 
                     {/* BARRA MÓVIL */}
                     <div className="md:hidden bg-ls-red text-white p-4 flex justify-between items-center z-50 shadow-md">
-                        <span className="font-bold">S.E.R.E.N.I.T.O.</span>
+                        <span className="font-bold">EVENTOS IMLS</span>
                         <button onClick={() => setMenuOpen(!menuOpen)}><i data-lucide="Menu"></i></button>
                     </div>
 
@@ -141,7 +133,7 @@
             );
         }
 
-        // --- COMPONENTES ---
+        // --- COMPONENTES PRINCIPALES ---
 
         function Dashboard({ eventos }) {
             const mapRef = useRef(null);
@@ -260,7 +252,6 @@
         }
 
         function Tecnica({ eventos, setEventos }) {
-            // Inicializar selección segura
             const [selId, setSelId] = useState(eventos.length > 0 ? eventos[0].id : null);
             const sel = eventos.find(e => e.id === selId) || (eventos.length > 0 ? eventos[0] : null);
 
@@ -280,7 +271,7 @@
                 }
             }
 
-            if(!sel) return <div className="p-10 text-center text-gray-400">No hay eventos activos. Cree uno en Secretaría.</div>;
+            if(!sel) return <div className="p-10 text-center text-gray-400">No hay eventos activos.</div>;
 
             return (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
@@ -311,7 +302,6 @@
             )
         }
 
-        // --- COMPONENTE ADMIN: AGREGAR/EDITAR + FOTOS ---
         function AdminView({ autoridades, setAutoridades }) {
             const [modo, setModo] = useState('lista'); 
             const [form, setForm] = useState({});
