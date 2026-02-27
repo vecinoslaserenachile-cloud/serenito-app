@@ -1,97 +1,18 @@
 [
-  {
-    "id": 101,
-    "nombre": "Gabriel Boric Font",
-    "cargo": "S.E. Presidente de la República",
-    "rango": 1,
-    "vocativo": "Su Excelencia",
-    "categoria": "Nacional VIP",
-    "presente": false,
-    "foto": "https://via.placeholder.com/150/000000/FFFFFF/?text=GB",
-    "historia": "Presidente de Chile (2022-2026)."
-  },
-  {
-    "id": 201,
-    "nombre": "N.N. Placeholder",
-    "cargo": "Gobernador Regional Coquimbo",
-    "rango": 2,
-    "vocativo": "Sr. Gobernador",
-    "categoria": "Regional Elqui",
-    "presente": false,
-    "foto": "https://via.placeholder.com/150/b91c1c/FFFFFF/?text=GR",
-    "historia": "Gobernador Regional electo."
-  },
-  {
-    "id": 202,
-    "nombre": "N.N. Placeholder",
-    "cargo": "Delegado Presidencial Regional",
-    "rango": 3,
-    "vocativo": "Sr. Delegado",
-    "categoria": "Regional Elqui",
-    "presente": false,
-    "foto": "https://via.placeholder.com/150/b91c1c/FFFFFF/?text=DPR",
-    "historia": "Delegado designado por S.E."
-  },
-  {
-    "id": 301,
-    "nombre": "N.N. Placeholder",
-    "cargo": "H. Senador Circunscripción 4",
-    "rango": 4,
-    "vocativo": "Honorable Senador",
-    "categoria": "Nacional/Regional",
-    "presente": false,
-    "foto": "https://via.placeholder.com/150/333333/FFFFFF/?text=Sen",
-    "historia": "Senador por la región."
-  },
-  {
-    "id": 302,
-    "nombre": "N.N. Placeholder",
-    "cargo": "H. Diputado Distrito 5",
-    "rango": 5,
-    "vocativo": "Honorable Diputado",
-    "categoria": "Nacional/Regional",
-    "presente": false,
-    "foto": "https://via.placeholder.com/150/333333/FFFFFF/?text=Dip",
-    "historia": "Diputado por el distrito 5."
-  },
-  {
-    "id": 303,
-    "nombre": "N.N. Placeholder",
-    "cargo": "Alcalde de La Serena",
-    "rango": 31,
-    "vocativo": "Sra. Alcaldesa",
-    "categoria": "Municipal Elqui",
-    "presente": true,
-    "foto": "https://via.placeholder.com/150/ff0000/FFFFFF/?text=Alca",
-    "historia": "Alcaldesa anfitriona electa."
-  },
-  {
-    "id": 304,
-    "nombre": "N.N. Placeholder",
-    "cargo": "Concejal de La Serena",
-    "rango": 32,
-    "vocativo": "Sr. Concejal",
-    "categoria": "Municipal Elqui",
-    "presente": false,
-    "foto": "https://via.placeholder.com/150/ff0000/FFFFFF/?text=Conc",
-    "historia": "Concejal electo por la comuna."
-  },
-    { "id": 401, "nombre": "Placeholder Seremi de Gobierno", "cargo": "Seremi de Gobierno Coquimbo", "rango": 15, "vocativo": "Sr./Sra. Seremi", "categoria": "SEREMI", "presente": false, "foto": "", "historia": "" },
-    { "id": 402, "nombre": "Placeholder Seremi de Salud", "cargo": "Seremi de Salud Coquimbo", "rango": 16, "vocativo": "Sr./Sra. Seremi", "categoria": "SEREMI", "presente": false, "foto": "", "historia": "" },
-    { "id": 403, "nombre": "Placeholder Seremi de Educación", "cargo": "Seremi de Educación Coquimbo", "rango": 17, "vocativo": "Sr./Sra. Seremi", "categoria": "SEREMI", "presente": false, "foto": "", "historia": "" },
-    { "id": 404, "nombre": "Placeholder Seremi de MOP", "cargo": "Seremi MOP Coquimbo", "rango": 18, "vocativo": "Sr./Sra. Seremi", "categoria": "SEREMI", "presente": false, "foto": "", "historia": "" },
-    { "id": 405, "nombre": "Placeholder Seremi de MINVU", "cargo": "Seremi MINVU Coquimbo", "rango": 19, "vocativo": "Sr./Sra. Seremi", "categoria": "SEREMI", "presente": false, "foto": "", "historia": "" },
+  { "id": 101, "nombre": "Gabriel Boric Font", "cargo": "S.E. Presidente de la República", "vocativo": "Su Excelencia", "categoria": "Nacional VIP", "precedencia": 1, "presente": false, "foto": "" },
+  
+  { "id": 400, "nombre": "Daniela Norambuena", "cargo": "Alcaldesa de La Serena", "vocativo": "Sra. Alcaldesa", "categoria": "Municipal Anfitrión", "precedencia": 2, "presente": true, "foto": "" },
 
-    { "id": 501, "nombre": "Comandante Regimiento Coquimbo", "cargo": "Comandante de la Guarnición de Ejército", "rango": 10, "vocativo": "Sr. Coronel", "categoria": "Fuerzas Armadas", "presente": false, "foto": "", "historia": "" },
-    { "id": 502, "nombre": "Prefecto Carabineros Limarí", "cargo": "Prefecto de Carabineros Limarí", "rango": 11, "vocativo": "Sr. Coronel", "categoria": "Carabineros", "presente": false, "foto": "", "historia": "" },
-    { "id": 503, "nombre": "Prefecto PDI Coquimbo", "cargo": "Prefecto PDI Coquimbo", "rango": 12, "vocativo": "Sr. Prefecto", "categoria": "PDI", "presente": false, "foto": "", "historia": "" },
-    
-    { "id": 601, "nombre": "Gobernador Marítimo Coquimbo", "cargo": "Gobernador Marítimo", "rango": 13, "vocativo": "Sr. Capitán", "categoria": "Armada de Chile", "presente": false, "foto": "", "historia": "" },
-    { "id": 602, "nombre": "Superintendente de Bomberos", "cargo": "Superintendente Bomberos La Serena", "rango": 250, "vocativo": "Sr. Superintendente", "categoria": "Bomberos", "presente": false, "foto": "", "historia": "" },
-    
-    { "id": 701, "nombre": "Vicerrector ULS", "cargo": "Vicerrector U. de La Serena", "rango": 20, "vocativo": "Sr. Vicerrector", "categoria": "Academia", "presente": false, "foto": "", "historia": "" },
-    { "id": 702, "nombre": "Rector Santo Tomás", "cargo": "Rector Santo Tomás sede LS", "rango": 21, "vocativo": "Sr. Rector", "categoria": "Academia", "presente": false, "foto": "", "historia": "" },
+  { "id": 201, "nombre": "Cristóbal Juliá", "cargo": "Gobernador Regional", "vocativo": "Sr. Gobernador", "categoria": "Regional", "precedencia": 10, "presente": false, "foto": "" },
+  { "id": 202, "nombre": "Galo Luna Penna", "cargo": "Delegado Presidencial Regional", "vocativo": "Sr. Delegado", "categoria": "Regional", "precedencia": 11, "presente": false, "foto": "" },
 
-    { "id": 801, "nombre": "Pdte. Unión Comunal JJVV", "cargo": "Presidente Unión Comunal La Serena", "rango": 300, "vocativo": "Sr. Presidente", "categoria": "Civil", "presente": false, "foto": "", "historia": "" },
-    { "id": 802, "nombre": "Pdte. Cámara de Comercio", "cargo": "Presidente Cámara de Comercio LS", "rango": 301, "vocativo": "Sr. Presidente", "categoria": "Gremial", "presente": false, "foto": "", "historia": "" }
+  { "id": 301, "nombre": "Sergio Gahona", "cargo": "Senador", "vocativo": "Honorable Senador", "categoria": "Parlamentario", "precedencia": 15, "presente": false, "foto": "" },
+  { "id": 302, "nombre": "Matías Walker", "cargo": "Senador", "vocativo": "Honorable Senador", "categoria": "Parlamentario", "precedencia": 15, "presente": false, "foto": "" },
+  
+  { "id": 501, "nombre": "René Rebolledo", "cargo": "Arzobispo de La Serena", "vocativo": "Monseñor", "categoria": "Eclesiástico", "precedencia": 20, "presente": true, "foto": "" },
+  
+  { "id": 401, "nombre": "Ali Manouchehri", "cargo": "Alcalde de Coquimbo", "vocativo": "Sr. Alcalde", "categoria": "Alcaldes Región", "precedencia": 35, "presente": false, "foto": "" },
+  
+  { "id": 801, "nombre": "Rayén Pojomovsky", "cargo": "Concejala de La Serena", "vocativo": "Sra. Concejala", "categoria": "Concejo Municipal", "precedencia": 40, "presente": false, "foto": "" },
+  { "id": 802, "nombre": "Luisa Jinete", "cargo": "Concejala de La Serena", "vocativo": "Sra. Concejala", "categoria": "Concejo Municipal", "precedencia": 40, "presente": false, "foto": "" }
 ]
