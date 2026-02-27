@@ -1,15 +1,31 @@
 [
   { "id": 101, "nombre": "Gabriel Boric Font", "cargo": "S.E. Presidente de la República", "vocativo": "Su Excelencia", "categoria": "Nacional VIP", "precedencia": 1, "presente": false },
-  { "id": 201, "nombre": "Krist Naranjo", "cargo": "Gobernadora Regional Coquimbo", "vocativo": "Sra. Gobernadora", "categoria": "Regional", "precedencia": 10, "presente": false },
+  
+  { "id": 201, "nombre": "Krist Naranjo", "cargo": "Gobernadora Regional", "vocativo": "Sra. Gobernadora", "categoria": "Regional", "precedencia": 10, "presente": false },
   { "id": 202, "nombre": "Galo Luna Penna", "cargo": "Delegado Presidencial Regional", "vocativo": "Sr. Delegado", "categoria": "Regional", "precedencia": 11, "presente": false },
-  { "id": 401, "nombre": "Daniela Norambuena", "cargo": "Alcaldesa de La Serena", "vocativo": "Sra. Alcaldesa", "categoria": "Municipal", "precedencia": 31, "presente": true },
-  { "id": 402, "nombre": "Ali Manouchehri", "cargo": "Alcalde de Coquimbo", "vocativo": "Sr. Alcalde", "categoria": "Municipal", "precedencia": 31, "presente": false },
-  { "id": 501, "nombre": "René Rebolledo Salinas", "cargo": "Arzobispo de La Serena", "vocativo": "Monseñor", "categoria": "Eclesiástico", "precedencia": 20, "presente": true },
-  { "id": 601, "nombre": "Christian Brebi Sáez", "cargo": "General Jefe de Zona Carabineros", "vocativo": "Sr. General", "categoria": "Fuerzas de Orden", "precedencia": 25, "presente": false },
-  { "id": 210, "nombre": "Sergio Gahona", "cargo": "Senador", "vocativo": "Honorable Senador", "categoria": "Parlamentario", "precedencia": 15, "presente": false },
-  { "id": 211, "nombre": "Matías Walker", "cargo": "Senador", "vocativo": "Honorable Senador", "categoria": "Parlamentario", "precedencia": 15, "presente": false },
-  { "id": 212, "nombre": "Daniel Núñez", "cargo": "Senador", "vocativo": "Honorable Senador", "categoria": "Parlamentario", "precedencia": 15, "presente": false },
-  { "id": 701, "nombre": "Paulina Mora", "cargo": "Seremi de Gobierno", "vocativo": "Sra. Seremi", "categoria": "SEREMI", "precedencia": 40, "presente": false },
-  { "id": 801, "nombre": "Rayén Pojomovsky", "cargo": "Concejala de La Serena", "vocativo": "Sra. Concejala", "categoria": "Concejo Municipal", "precedencia": 50, "presente": false },
-  { "id": 802, "nombre": "Luisa Jinete", "cargo": "Concejala de La Serena", "vocativo": "Sra. Concejala", "categoria": "Concejo Municipal", "precedencia": 50, "presente": false }
+  
+  { "id": 400, "nombre": "Daniela Norambuena", "cargo": "Alcaldesa de La Serena", "vocativo": "Sra. Alcaldesa", "categoria": "Municipal Anfitrión", "precedencia": 30, "presente": true },
+
+  { "id": 401, "nombre": "Ali Manouchehri", "cargo": "Alcalde de Coquimbo", "vocativo": "Sr. Alcalde", "categoria": "Alcaldes Región", "precedencia": 31, "presente": false },
+  { "id": 402, "nombre": "Rafael Vera", "cargo": "Alcalde de Vicuña", "vocativo": "Sr. Alcalde", "categoria": "Alcaldes Región", "precedencia": 31, "presente": false },
+  { "id": 403, "nombre": "Hernán Ahumada", "cargo": "Alcalde de Paihuano", "vocativo": "Sr. Alcalde", "categoria": "Alcaldes Región", "precedencia": 31, "presente": false },
+  { "id": 404, "nombre": "Gerald Cerda", "cargo": "Alcalde de Andacollo", "vocativo": "Sr. Alcalde", "categoria": "Alcaldes Región", "precedencia": 31, "presente": false },
+  { "id": 405, "nombre": "Víctor Manuel Donoso", "cargo": "Alcalde de La Higuera", "vocativo": "Sr. Alcalde", "categoria": "Alcaldes Región", "precedencia": 31, "presente": false },
+  { "id": 406, "nombre": "Jonathan Acuña", "cargo": "Alcalde de Ovalle", "vocativo": "Sr. Alcalde", "categoria": "Alcaldes Región", "precedencia": 31, "presente": false },
+  { "id": 407, "nombre": "Cristián Herrera", "cargo": "Alcalde de Monte Patria", "vocativo": "Sr. Alcalde", "categoria": "Alcaldes Región", "precedencia": 31, "presente": false },
+  { "id": 408, "nombre": "Marta Carvajal", "cargo": "Alcaldesa de Punitaqui", "vocativo": "Sra. Alcaldesa", "categoria": "Alcaldes Región", "precedencia": 31, "presente": false },
+  { "id": 409, "nombre": "Carmen Juana Olivares", "cargo": "Alcaldesa de Río Hurtado", "vocativo": "Sra. Alcaldesa", "categoria": "Alcaldes Región", "precedencia": 31, "presente": false },
+  { "id": 410, "nombre": "Pedro Castillo", "cargo": "Alcalde de Combarbalá", "vocativo": "Sr. Alcalde", "categoria": "Alcaldes Región", "precedencia": 31, "presente": false },
+  { "id": 411, "nombre": "Denis Cortés", "cargo": "Alcalde de Illapel", "vocativo": "Sr. Alcalde", "categoria": "Alcaldes Región", "precedencia": 31, "presente": false },
+  { "id": 412, "nombre": "Christian Gross", "cargo": "Alcalde de Los Vilos", "vocativo": "Sr. Alcalde", "categoria": "Alcaldes Región", "precedencia": 31, "presente": false },
+  { "id": 413, "nombre": "Gerardo Cerda", "cargo": "Alcalde de Salamanca", "vocativo": "Sr. Alcalde", "categoria": "Alcaldes Región", "precedencia": 31, "presente": false },
+  { "id": 414, "nombre": "Bernardo Leyton", "cargo": "Alcalde de Canela", "vocativo": "Sr. Alcalde", "categoria": "Alcaldes Región", "precedencia": 31, "presente": false },
+
+  { "id": 501, "nombre": "René Rebolledo", "cargo": "Arzobispo de La Serena", "vocativo": "Monseñor", "categoria": "Eclesiástico", "precedencia": 20, "presente": true },
+  
+  { "id": 801, "nombre": "Rayén Pojomovsky", "cargo": "Concejala de La Serena", "vocativo": "Sra. Concejala", "categoria": "Concejo Municipal", "precedencia": 40, "presente": false },
+  { "id": 802, "nombre": "Luisa Jinete", "cargo": "Concejala de La Serena", "vocativo": "Sra. Concejala", "categoria": "Concejo Municipal", "precedencia": 40, "presente": false },
+  { "id": 803, "nombre": "Daniela Molina", "cargo": "Concejala de La Serena", "vocativo": "Sra. Concejala", "categoria": "Concejo Municipal", "precedencia": 40, "presente": false },
+  { "id": 804, "nombre": "Félix Velasco", "cargo": "Concejal de La Serena", "vocativo": "Sr. Concejal", "categoria": "Concejo Municipal", "precedencia": 40, "presente": false },
+  { "id": 805, "nombre": "Camilo Araya", "cargo": "Concejal de La Serena", "vocativo": "Sr. Concejal", "categoria": "Concejo Municipal", "precedencia": 40, "presente": false }
 ]
