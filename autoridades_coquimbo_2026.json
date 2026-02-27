@@ -1,5 +1,4 @@
 [
-  // --- LIGA 1: VIP NACIONALES (Precedencia Alta) ---
   {
     "id": 101,
     "nombre": "N.N. Placeholder",
@@ -27,8 +26,6 @@
     "precedencia": 3,
     "presente": false
   },
-
-  // --- LIGA 2: AUTORIDADES REGIONALES CLAVE ---
   {
     "id": 201,
     "nombre": "Krist Rebolledo",
@@ -47,8 +44,6 @@
     "precedencia": 3,
     "presente": false
   },
-
-  // --- SEREMIS (Muchos registros) ---
   {
     "id": 210,
     "nombre": "Paulina Mora",
@@ -85,9 +80,6 @@
     "precedencia": 18,
     "presente": false
   },
-  // (...Añadir el resto de los SEREMIs aquí...)
-
-  // --- LIGA 3: CONSEJO REGIONAL (COREs) (Muchos registros) ---
   {
     "id": 301,
     "nombre": "Placeholder CORE 1",
@@ -115,10 +107,6 @@
     "precedencia": 22,
     "presente": false
   },
-  // (...Añadir el resto de los COREs aquí...)
-
-  // --- LIGA 4: AUTORIDADES MUNICIPALES LA SERENA ---
-  // Daniela Norambuena es la anfitriona (R31)
   {
     "id": 401,
     "nombre": "Daniela Norambuena",
@@ -128,8 +116,6 @@
     "precedencia": 31,
     "presente": true
   },
-  
-  // --- CONCEJO MUNICIPAL LA SERENA (Muchos registros) ---
   {
     "id": 410,
     "nombre": "Rayén Pojomovsky",
@@ -157,11 +143,6 @@
     "precedencia": 32,
     "presente": false
   },
-  // (...Añadir el resto de los Concejales aquí...)
-
-  // --- LIGA 5: OTRAS AUTORIDADES ---
-  
-  // Arzobispado (R10)
   {
     "id": 501,
     "nombre": "René Rebolledo Salinas",
@@ -171,8 +152,6 @@
     "precedencia": 10,
     "presente": true
   },
-
-  // FUERZAS ARMADAS Y DE ORDEN
   {
     "id": 601,
     "nombre": "Placeholder Army",
@@ -209,8 +188,6 @@
     "precedencia": 28,
     "presente": false
   },
-
-  // Bomberos (R250)
   {
     "id": 701,
     "nombre": "Placeholder Superintendente",
@@ -229,8 +206,6 @@
     "precedencia": 251,
     "presente": false
   },
-
-  // VECINOS Y CÍVICAS
   {
     "id": 801,
     "nombre": "Placeholder Vecinos Faro Norte",
