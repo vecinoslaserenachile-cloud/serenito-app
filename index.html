@@ -31,25 +31,25 @@
       }
     </script>
     <style>
-        /* El mapa ahora llenará el contenedor padre */
-        .map-full { width: 100%; height: 100%; z-index: 1; }
-        .map-mini { height: 300px; width: 100%; border-radius: 0.5rem; z-index: 1; }
+        /* Corrección Mapa Apretado */
+        .map-full { width: 100%; height: 100%; min-height: 600px; z-index: 1; border-radius: 1rem; }
+        .map-mini { height: 100%; min-height: 300px; width: 100%; border-radius: 0.5rem; z-index: 1; }
+        
         .scroll-hide::-webkit-scrollbar { display: none; }
         .glass { background: rgba(255,255,255,0.95); backdrop-filter: blur(5px); border: 1px solid rgba(0,0,0,0.1); }
         .avatar-img { width: 100%; height: 100%; object-fit: cover; }
         
-        /* Iconos de Mapa */
         .pulse-icon { background-color: #b91c1c; border-radius: 50%; width: 24px; height: 24px; border: 3px solid white; animation: pulse 1.5s infinite; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(185, 28, 28, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(185, 28, 28, 0); } }
     </style>
 </head>
-<body class="bg-ls-gray text-slate-800 overflow-x-hidden font-sans">
-    <div id="root"></div>
+<body class="bg-ls-gray text-slate-800 overflow-x-hidden font-sans h-screen flex flex-col">
+    <div id="root" class="h-full"></div>
 
     <script type="text/babel">
         const { useState, useEffect, useRef, useMemo } = React;
 
-        // DATOS INICIALES MULTI-EVENTO (Edición Producción)
+        // DATOS INICIALES MULTI-EVENTO
         const EVENTOS_INICIALES = [
             { 
                 id: 1, nombre: "Inauguración Plaza de Armas", fecha: "2026-04-28T11:00", lugar: "Plaza de Armas", 
@@ -108,26 +108,26 @@
             const [locutorNombre, setLocutorNombre] = useState("");
             const [errorCarga, setErrorCarga] = useState(null);
 
-            // Carga de Datos + Cache Busting para asegurar lista nueva
+            // CARGA DE BASE DE DATOS
             useEffect(() => {
-                const stored = localStorage.getItem('serenito_db_v17');
+                const stored = localStorage.getItem('serenito_db_v18');
                 if(stored) {
                     setAutoridades(JSON.parse(stored));
                 } else {
-                    // ?v=timestamp fuerza al navegador a leer el archivo nuevo
+                    // ?v=timestamp evita caché
                     fetch(`autoridades_coquimbo_2026.json?v=${Date.now()}`)
                         .then(res => res.ok ? res.json() : Promise.reject("Error JSON"))
                         .then(data => {
                             const sorted = data.sort((a, b) => a.precedencia - b.precedencia);
                             setAutoridades(sorted);
-                            localStorage.setItem('serenito_db_v17', JSON.stringify(sorted));
+                            localStorage.setItem('serenito_db_v18', JSON.stringify(sorted));
                         })
-                        .catch(err => setErrorCarga("⚠️ Error de conexión con la base de datos."));
+                        .catch(err => setErrorCarga("⚠️ Error conectando a la base de datos."));
                 }
             }, []);
 
             useEffect(() => {
-                if(autoridades.length > 0) localStorage.setItem('serenito_db_v17', JSON.stringify(autoridades));
+                if(autoridades.length > 0) localStorage.setItem('serenito_db_v18', JSON.stringify(autoridades));
             }, [autoridades]);
 
             const navegar = (v) => { setVista(v); setMenuOpen(false); }
@@ -138,7 +138,7 @@
                     {/* SIDEBAR */}
                     <aside className={`fixed inset-y-0 left-0 z-40 w-72 bg-white border-r border-gray-200 transform transition-transform duration-300 ease-in-out flex flex-col shadow-2xl ${menuOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0`}>
                         <div className="p-8 flex flex-col items-center bg-ls-red text-white">
-                            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center font-black text-4xl text-ls-red shadow-lg mb-2 border-4 border-ls-yellow">LS</div>
+                            <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center font-black text-3xl text-ls-red shadow-lg mb-2 border-4 border-ls-yellow">LS</div>
                             <h1 className="text-sm font-black tracking-tight text-center leading-tight">EVENTOS Y RR.PP.<br/><span className="text-lg">IMLS</span></h1>
                             <p className="text-[9px] uppercase font-bold text-ls-yellow mt-1">Gestión 2026</p>
                         </div>
@@ -167,7 +167,7 @@
                     </div>
 
                     {/* MAIN */}
-                    <main className="flex-1 overflow-y-auto p-4 md:p-6 w-full relative flex flex-col h-full">
+                    <main className="flex-1 overflow-y-auto p-4 md:p-6 w-full relative flex flex-col h-full bg-slate-50">
                         <div className="flex-1 flex flex-col pb-16 h-full">
                             {errorCarga && <div className="bg-red-100 text-red-700 p-3 rounded-lg mb-4 text-sm border border-red-200">{errorCarga}</div>}
                             
@@ -180,14 +180,14 @@
                             {vista === 'admin' && <AdminView autoridades={autoridades} setAutoridades={setAutoridades} />}
                         </div>
                         
-                        {/* WINCHA LIVE (Siempre Visible) */}
+                        {/* WINCHA LIVE */}
                         <Wincha autoridades={autoridades} eventos={eventos} />
                     </main>
                 </div>
             );
         }
 
-        // --- 1. DASHBOARD (MAPA FULL SCREEN) ---
+        // --- 1. DASHBOARD (MAPA FULL SCREEN REPARADO) ---
         function Dashboard({ eventos }) {
             const mapRef = useRef(null);
             useEffect(() => {
@@ -208,11 +208,10 @@
                         <h2 className="text-2xl font-black text-ls-red uppercase flex gap-2 items-center"><i data-lucide="Map"></i> Despliegue Territorial</h2>
                         <span className="text-xs font-bold bg-white border px-3 py-1 rounded-full text-gray-500">Vista Satelital IMLS</span>
                     </div>
-                    {/* Contenedor Flex para ocupar todo el alto */}
-                    <div className="flex-1 relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white">
+                    {/* Contenedor forzado a crecer */}
+                    <div className="flex-1 relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white h-full min-h-[500px]">
                         <div id="mapa-tactico" className="map-full"></div>
                         
-                        {/* Panel Flotante de Datos */}
                         <div className="absolute top-4 right-4 glass p-4 rounded-xl shadow-xl z-[500] w-64">
                             <h4 className="text-[10px] font-black text-ls-red uppercase mb-3 border-b border-gray-200 pb-2">Resumen Operativo</h4>
                             <div className="space-y-2">
@@ -225,32 +224,37 @@
             );
         }
 
-        // --- 2. TÉCNICA (MULTIEVENTO CORREGIDO - SIN SALTOS) ---
+        // --- 2. TÉCNICA (MULTIEVENTO BLINDADO) ---
         function Tecnica({ eventos, setEventos }) {
-            const [selId, setSelId] = useState(eventos.length > 0 ? eventos[0].id : null);
-            const sel = eventos.find(e => e.id === selId);
+            // Guardamos el ÍNDICE en vez del ID para evitar pérdidas de referencia
+            const [selectedIndex, setSelectedIndex] = useState(0);
+            
+            // Protección: Si no hay eventos, seleccionamos null, si hay, seleccionamos el index seguro
+            const sel = eventos[selectedIndex] || eventos[0];
 
-            // Función segura para cambiar evento SIN RECARGAR
-            const seleccionarEvento = (e, id) => {
-                e.preventDefault(); // CLAVE: Evita recarga
-                e.stopPropagation();
-                setSelId(id);
-            };
+            // Función SEGURA para cambiar de evento
+            const cambiarEvento = (index) => {
+                setSelectedIndex(index);
+            }
 
             const toggle = (taskId) => {
                 if(!sel) return;
                 const nuevoCheck = sel.checklist.map(t => t.id === taskId ? { ...t, listo: !t.listo } : t);
-                const actualizado = { ...sel, checklist: nuevoCheck };
-                setEventos(eventos.map(ev => ev.id === sel.id ? actualizado : ev));
+                const eventoActualizado = { ...sel, checklist: nuevoCheck };
+                
+                // Actualizamos la lista global reemplazando solo el evento modificado
+                const nuevaLista = eventos.map((ev, i) => i === selectedIndex ? eventoActualizado : ev);
+                setEventos(nuevaLista);
             }
 
             const agregarManual = (e) => {
-                e.preventDefault();
+                e.preventDefault(); // Previene recarga
                 if(!sel) return;
                 const texto = prompt("Nombre de la nueva variable técnica:");
                 if(texto) {
-                    const actualizado = { ...sel, checklist: [...sel.checklist, { id: Date.now(), tarea: texto, listo: false }] };
-                    setEventos(eventos.map(ev => ev.id === sel.id ? actualizado : ev));
+                    const eventoActualizado = { ...sel, checklist: [...sel.checklist, { id: Date.now(), tarea: texto, listo: false }] };
+                    const nuevaLista = eventos.map((ev, i) => i === selectedIndex ? eventoActualizado : ev);
+                    setEventos(nuevaLista);
                 }
             }
 
@@ -261,20 +265,20 @@
                     {/* Lista Lateral de Eventos */}
                     <div className="lg:col-span-1 space-y-3 overflow-y-auto pr-2 border-r border-gray-200">
                         <h2 className="font-black text-lg text-ls-red mb-4 flex items-center gap-2"><i data-lucide="List"></i> Seleccionar Ficha</h2>
-                        {eventos.map(ev => (
-                            <button type="button" key={ev.id} onClick={(e) => seleccionarEvento(e, ev.id)} 
-                                className={`w-full text-left p-4 rounded-xl cursor-pointer border transition-all duration-200 ${sel.id === ev.id ? 'bg-ls-red text-white shadow-lg transform scale-105' : 'bg-white hover:bg-gray-50 border-gray-200 text-gray-600'}`}>
+                        {eventos.map((ev, index) => (
+                            <button type="button" key={ev.id} onClick={() => cambiarEvento(index)} 
+                                className={`w-full text-left p-4 rounded-xl cursor-pointer border transition-all duration-200 ${selectedIndex === index ? 'bg-ls-red text-white shadow-lg transform scale-105' : 'bg-white hover:bg-gray-50 border-gray-200 text-gray-600'}`}>
                                 <h3 className="font-bold text-sm mb-1">{ev.nombre}</h3>
                                 <div className="flex justify-between items-center text-[10px] opacity-90">
                                     <span>{ev.responsable}</span>
-                                    <span className={`px-2 py-0.5 rounded ${sel.id === ev.id ? 'bg-white/20' : 'bg-gray-100'}`}>{ev.checklist.filter(t=>t.listo).length}/{ev.checklist.length} OK</span>
+                                    <span className={`px-2 py-0.5 rounded ${selectedIndex === index ? 'bg-white/20' : 'bg-gray-100'}`}>{ev.checklist.filter(t=>t.listo).length}/{ev.checklist.length} OK</span>
                                 </div>
                             </button>
                         ))}
                     </div>
 
                     {/* Detalle y Checklist */}
-                    <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-xl border-t-4 border-ls-yellow flex flex-col h-full">
+                    <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-xl border-t-4 border-ls-yellow flex flex-col h-full overflow-hidden">
                          <div className="flex justify-between items-start mb-6 border-b border-gray-100 pb-4">
                              <div>
                                  <h2 className="font-black text-2xl text-gray-800">{sel.nombre}</h2>
@@ -299,7 +303,7 @@
             )
         }
 
-        // --- 3. SECRETARÍA (MAPA CORREGIDO - UN SOLO PIN) ---
+        // --- 3. SECRETARÍA (MAPA CORREGIDO - LIMPIEZA DE PIN) ---
         function Secretaria({ onGuardar }) {
             const [form, setForm] = useState({ nombre: '', responsable: '', fecha: '', coords: null, direccion: '' });
             const mapRef = useRef(null);
@@ -310,7 +314,7 @@
                     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
                     
                     map.on('click', (e) => {
-                        // Limpiar pines anteriores para que solo haya uno
+                        // Borrar capas anteriores (Pines)
                         map.eachLayer((layer) => { if (layer instanceof L.Marker) map.removeLayer(layer); });
                         
                         L.marker(e.latlng).addTo(map);
@@ -349,13 +353,12 @@
                         </form>
                     </div>
                     <div className="rounded-2xl overflow-hidden shadow-lg border border-gray-200 relative h-full">
-                        <div id="mapa-geo" className="map-mini h-full w-full"></div>
+                        <div id="mapa-geo" className="map-mini"></div>
                     </div>
                 </div>
             );
         }
 
-        // ... Protocolo, Locutor y Admin (Se mantienen igual que V16 por estar correctos) ...
         function Protocolo({ autoridades, setAutoridades }) {
             const [filtro, setFiltro] = useState("");
             const filtrados = autoridades.filter(a => a.nombre.toLowerCase().includes(filtro.toLowerCase()) || a.cargo.toLowerCase().includes(filtro.toLowerCase()));
@@ -414,15 +417,22 @@
             const guardar = (e) => {
                 e.preventDefault();
                 let nuevo;
-                if(autoridades.find(a => a.id === form.id)) { nuevo = autoridades.map(a => a.id === form.id ? form : a); } 
-                else { nuevo = [...autoridades, form]; }
+                if(autoridades.find(a => a.id === form.id)) {
+                    nuevo = autoridades.map(a => a.id === form.id ? form : a);
+                } else {
+                    nuevo = [...autoridades, form];
+                }
                 setAutoridades(nuevo.sort((a,b)=>a.precedencia-b.precedencia));
                 setModo('lista');
             }
 
             const leerFoto = (e) => {
                 const file = e.target.files[0];
-                if(file){ const reader = new FileReader(); reader.onloadend = () => setForm({...form, foto: reader.result}); reader.readAsDataURL(file); }
+                if(file){
+                    const reader = new FileReader();
+                    reader.onloadend = () => setForm({...form, foto: reader.result});
+                    reader.readAsDataURL(file);
+                }
             }
 
             if(modo === 'editar') {
@@ -450,6 +460,7 @@
                     </div>
                 )
             }
+
             return (
                 <div className="bg-white p-6 rounded-2xl shadow-lg h-full flex flex-col">
                     <div className="flex justify-between mb-4">
@@ -479,7 +490,12 @@
         const Wincha = ({ autoridades, eventos }) => {
             const presentes = autoridades.filter(a => a.presente);
             const activos = eventos.filter(e => e.estado === "En Desarrollo");
-            const txt = [...presentes.map(a => `🟢 ${a.cargo} ${a.nombre}`), ...activos.map(e => `📢 HITO: ${e.nombre}`), "☀️ Temp: 18°C", "🚧 Despliegue Operativo"].join("   |   ");
+            const txt = [
+                ...presentes.map(a => `🟢 ${a.cargo} ${a.nombre}`),
+                ...activos.map(e => `📢 HITO: ${e.nombre}`),
+                "☀️ Temp: 18°C", "🚧 Despliegue Operativo"
+            ].join("   |   ");
+
             return (
                 <div className="fixed bottom-0 left-0 md:left-72 right-0 bg-ls-red text-white h-8 flex items-center overflow-hidden z-50 border-t-2 border-ls-yellow">
                     <div className="bg-red-900 px-3 h-full flex items-center text-[10px] font-black uppercase z-10">En Vivo</div>
