@@ -3,394 +3,383 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>S.E.R.E.N.I.T.O. | Intelligence Hub</title>
+    <title>S.E.R.E.N.I.T.O. | Protocolo 4.0</title>
     
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2210%22 fill=%22%23b91c1c%22 /><text x=%2250%22 y=%2275%22 font-family=%22Arial%22 font-size=%2270%22 font-weight=%22bold%22 fill=%22white%22 text-anchor=%22middle%22>S</text></svg>">
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
-
     <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;900&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
         theme: {
           extend: {
             fontFamily: { sans: ['Inter', 'sans-serif'] },
             colors: {
-              'serena-dark': '#0f172a', 
-              'serena-blue': '#1e40af',
-              'serena-gold': '#fbbf24',
+              'ls-red': '#b91c1c',     // Rojo La Serena (Papaya oscuro)
+              'ls-stone': '#292524',   // Gris piedra colonial
+              'ls-gold': '#d97706',    // Dorado institucional
             }
           }
         }
       }
     </script>
-
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
     <style>
-        body { background-color: #f1f5f9; }
-        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(10px); }
-        .map-container { height: 300px; width: 100%; border-radius: 1rem; z-index: 1; }
-        /* Animación de carga */
-        .loader { border: 3px solid #f3f3f3; border-top: 3px solid #1e40af; border-radius: 50%; width: 20px; height: 20px; animation: spin 1s linear infinite; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .map-container { height: 300px; width: 100%; border-radius: 0.75rem; z-index: 1; }
+        .glass-panel { background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(0,0,0,0.05); }
+        .countdown-digits { font-variant-numeric: tabular-nums; }
     </style>
 </head>
-<body>
+<body class="bg-slate-100 text-slate-900">
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // --- BASE DE DATOS SIMULADA (La Magia) ---
-        const DB_DECRETOS = {
-            "450": { titulo: "Autorización Uso Espacio Público - El Faro", fecha: "2026-02-20" },
-            "102": { titulo: "Adquisición Insumos Protocolares", fecha: "2026-01-15" },
-            "880": { titulo: "Decreto Nombramiento Visita Ilustre", fecha: "2026-02-27" }
-        };
-
-        const UBICACIONES = {
-            "El Faro": [-29.9045, -71.2755],
-            "Plaza de Armas": [-29.9027, -71.2520],
-            "Estadio La Portada": [-29.9126, -71.2566],
-            "Cuatro Esquinas": [-29.9360, -71.2680]
-        };
-
-        const VIPS_DEFAULT = [
-            { id: 1, nombre: "Daniela Norambuena", cargo: "Alcaldesa", estado: "pendiente" },
-            { id: 2, nombre: "Cristóbal Juliá", cargo: "Gobernador", estado: "pendiente" },
-            { id: 3, nombre: "Galo Luna", cargo: "Delegado Pres.", estado: "pendiente" },
+        // --- BASE DE DATOS MAESTRA DE AUTORIDADES (Región Coquimbo / La Serena) ---
+        const DB_AUTORIDADES = [
+            { id: 1, nombre: "Daniela Norambuena", cargo: "Alcaldesa de La Serena", vocativo: "Sra. Alcaldesa", precedencia: "CENTRO (Anfitriona)", estado: "pendiente" },
+            { id: 2, nombre: "Galo Luna Penna", cargo: "Delegado Presidencial Regional", vocativo: "Sr. Delegado", precedencia: "DERECHA 1", estado: "pendiente" },
+            { id: 3, nombre: "Cristóbal Juliá", cargo: "Gobernador Regional", vocativo: "Sr. Gobernador", precedencia: "IZQUIERDA 1", estado: "pendiente" },
+            { id: 4, nombre: "Ricardo Cifuentes", cargo: "Diputado de la República", vocativo: "Honorable Diputado", precedencia: "DERECHA 2", estado: "pendiente" },
+            { id: 5, nombre: "Marco Antonio Sulantay", cargo: "Diputado de la República", vocativo: "Honorable Diputado", precedencia: "IZQUIERDA 2", estado: "pendiente" },
+            { id: 6, nombre: "Concejo Municipal", cargo: "Concejales La Serena", vocativo: "Sres. Concejales", precedencia: "PRIMERA FILA", estado: "pendiente" },
+            { id: 7, nombre: "Arzobispo René Rebolledo", cargo: "Arzobispo de La Serena", vocativo: "Monseñor", precedencia: "DERECHA 3", estado: "pendiente" }
         ];
 
-        // --- COMPONENTE PRINCIPAL ---
-        function SerenitoApp() {
-            const [vista, setVista] = useState('dashboard'); // Vista inicial: RESUMEN
-            const [loading, setLoading] = useState(false);
-            const [eventos, setEventos] = useState([
-                { id: 1, nombre: "Inauguración Luces", lugar: "El Faro", coords: UBICACIONES["El Faro"], estado: "activo" }
-            ]);
-            const [vips, setVips] = useState(VIPS_DEFAULT);
+        const UBICACIONES = {
+            "El Faro Monumental": [-29.9045, -71.2755],
+            "Edificio Consistorial": [-29.9027, -71.2520],
+            "Coliseo Monumental": [-29.9126, -71.2566],
+            "Delegación Municipal": [-29.9360, -71.2680],
+            "Parque Pedro de Valdivia": [-29.9090, -71.2550]
+        };
 
-            // Simulación de "Cargando Módulo"
-            const cambiarVista = (nuevaVista) => {
-                setLoading(true);
-                setTimeout(() => {
-                    setVista(nuevaVista);
-                    setLoading(false);
-                }, 600); // 0.6 segundos de "conexión al servidor"
-            };
+        // --- APP PRINCIPAL ---
+        function SerenitoApp() {
+            const [vista, setVista] = useState('dashboard');
+            const [eventos, setEventos] = useState([
+                { id: 1, nombre: "Cuenta Pública 2026", fecha: "2026-03-01T11:00", lugar: "Edificio Consistorial", coords: UBICACIONES["Edificio Consistorial"] },
+                { id: 2, nombre: "Festival del Faro", fecha: "2026-02-28T20:00", lugar: "El Faro Monumental", coords: UBICACIONES["El Faro Monumental"] }
+            ]);
+            const [autoridades, setAutoridades] = useState(DB_AUTORIDADES);
+            const [user] = useState({ nombre: "Rodrigo Godoy", cargo: "Jefe de Eventos & Protocolo" });
 
             return (
                 <div className="flex h-screen overflow-hidden">
                     
-                    {/* BARRA LATERAL (Sidebar) */}
-                    <aside className="w-64 bg-serena-dark text-white flex flex-col shadow-2xl z-50">
-                        <div className="p-6 border-b border-gray-700">
-                            <h1 className="text-2xl font-black tracking-tighter text-white">S.E.R.E.N.I.T.O.</h1>
-                            <p className="text-[10px] text-gray-400 uppercase tracking-widest mt-1">Inteligencia Territorial</p>
+                    {/* SIDEBAR (Navegación) */}
+                    <aside className="w-20 lg:w-64 bg-ls-stone text-white flex flex-col shadow-2xl transition-all duration-300">
+                        <div className="p-6 flex flex-col items-center lg:items-start border-b border-gray-700">
+                            <div className="w-10 h-10 bg-ls-red rounded-lg flex items-center justify-center font-black text-2xl shadow-lg mb-2">S</div>
+                            <h1 className="hidden lg:block text-lg font-black tracking-tighter">S.E.R.E.N.I.T.O.</h1>
+                            <p className="hidden lg:block text-[9px] uppercase tracking-widest text-gray-400">Sistema Inteligente v4.0</p>
                         </div>
                         
-                        <nav className="flex-1 p-4 space-y-2">
-                            <BotonMenu icono="LayoutDashboard" label="Panel Resumen" activo={vista === 'dashboard'} onClick={() => cambiarVista('dashboard')} />
-                            <BotonMenu icono="Calendar" label="Secretaría / Agenda" activo={vista === 'secretaria'} onClick={() => cambiarVista('secretaria')} />
-                            <BotonMenu icono="Users" label="Protocolo VIP" activo={vista === 'protocolo'} onClick={() => cambiarVista('protocolo')} />
-                            <BotonMenu icono="Mic2" label="Técnica / Stage" activo={vista === 'tecnico'} onClick={() => cambiarVista('tecnico')} />
-                            <BotonMenu icono="Camera" label="Prensa Hub" activo={vista === 'prensa'} onClick={() => cambiarVista('prensa')} />
+                        <nav className="flex-1 py-6 space-y-2 px-2">
+                            <MenuBtn id="dashboard" icon="LayoutGrid" label="Resumen Global" active={vista==='dashboard'} onClick={()=>setVista('dashboard')} />
+                            <MenuBtn id="secretaria" icon="CalendarDays" label="Secretaría / Hitos" active={vista==='secretaria'} onClick={()=>setVista('secretaria')} />
+                            <MenuBtn id="protocolo" icon="Award" label="Protocolo & VIP" active={vista==='protocolo'} onClick={()=>setVista('protocolo')} />
+                            <MenuBtn id="tecnico" icon="RadioReceiver" label="Técnica / Live" active={vista==='tecnico'} onClick={()=>setVista('tecnico')} />
+                            <MenuBtn id="prensa" icon="Newspaper" label="Prensa & Medios" active={vista==='prensa'} onClick={()=>setVista('prensa')} />
                         </nav>
 
-                        <div className="p-4 bg-gray-800 text-xs text-gray-400">
-                            <div className="flex items-center gap-2 mb-2">
-                                <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                                Servidor Conectado
+                        {/* USUARIO LOGUEADO */}
+                        <div className="p-4 bg-gray-900/50 border-t border-gray-800 hidden lg:flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-ls-gold text-ls-stone font-bold flex items-center justify-center">RG</div>
+                            <div className="leading-tight">
+                                <p className="text-sm font-bold">{user.nombre}</p>
+                                <p className="text-[10px] text-gray-400">{user.cargo}</p>
                             </div>
-                            Usuario: R. Godoy (Admin)
                         </div>
                     </aside>
 
                     {/* ÁREA PRINCIPAL */}
-                    <main className="flex-1 overflow-y-auto relative bg-slate-100">
-                        
-                        {/* HEADER SUPERIOR */}
-                        <header className="bg-white p-4 shadow-sm flex justify-between items-center sticky top-0 z-40">
-                            <h2 className="text-xl font-bold text-gray-800 flex items-center gap-2">
-                                {loading ? <div className="loader"></div> : obtenerTitulo(vista)}
+                    <main className="flex-1 overflow-y-auto bg-slate-100 p-4 lg:p-8">
+                        <header className="flex justify-between items-center mb-8">
+                            <h2 className="text-2xl font-black text-ls-stone uppercase tracking-tight flex items-center gap-3">
+                                <i data-lucide={obtenerIcono(vista)} className="text-ls-red"></i>
+                                {obtenerTitulo(vista)}
                             </h2>
-                            <div className="flex items-center gap-4">
-                                <span className="text-sm font-bold text-serena-blue">{new Date().toLocaleDateString()}</span>
-                                <img src="https://via.placeholder.com/40" className="w-10 h-10 rounded-full border-2 border-serena-gold" alt="Profile"/>
+                            <div className="text-right hidden md:block">
+                                <p className="text-xs font-bold text-gray-400 uppercase">La Serena, Chile</p>
+                                <p className="text-lg font-bold text-ls-stone">{new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })}</p>
                             </div>
                         </header>
 
-                        {/* CONTENIDO DINÁMICO */}
-                        <div className="p-6">
-                            {loading ? (
-                                <div className="flex flex-col items-center justify-center h-96 text-gray-400">
-                                    <div className="loader w-10 h-10 mb-4"></div>
-                                    <p>Sincronizando datos territoriales...</p>
-                                </div>
-                            ) : (
-                                <>
-                                    {vista === 'dashboard' && <Dashboard eventos={eventos} vips={vips} />}
-                                    {vista === 'secretaria' && <ModuloSecretaria onGuardar={(e) => setEventos([e, ...eventos])} />}
-                                    {vista === 'protocolo' && <ModuloProtocolo vips={vips} setVips={setVips} />}
-                                    {vista === 'tecnico' && <ModuloTecnico eventos={eventos} />}
-                                    {vista === 'prensa' && <ModuloPrensa />}
-                                </>
-                            )}
+                        <div className="animate-fade-in">
+                            {vista === 'dashboard' && <Dashboard eventos={eventos} autoridades={autoridades} />}
+                            {vista === 'secretaria' && <Secretaria onGuardar={(e) => setEventos([...eventos, e])} />}
+                            {vista === 'protocolo' && <Protocolo lista={autoridades} setLista={setAutoridades} />}
+                            {vista === 'tecnico' && <Tecnico eventos={eventos} />}
+                            {vista === 'prensa' && <Prensa eventos={eventos} />}
                         </div>
                     </main>
                 </div>
             );
         }
 
-        // --- 1. MÓDULO DASHBOARD (RESUMEN CENTRAL + MAPA) ---
-        function Dashboard({ eventos, vips }) {
-            const mapRef = useRef(null);
+        // --- MÓDULOS ---
 
-            // Efecto para cargar el mapa Leaflet
+        // 1. DASHBOARD: RESUMEN GLOBAL
+        function Dashboard({ eventos, autoridades }) {
             useEffect(() => {
-                if (!document.getElementById('mapid')) return;
-                
-                // Si el mapa ya existe, no lo recreamos
-                if (mapRef.current) return;
-
-                // Inicializar Mapa centrado en La Serena
-                const map = L.map('mapid').setView([-29.9027, -71.2520], 13);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                    attribution: '© OpenStreetMap contributors'
-                }).addTo(map);
-
-                // Agregar marcadores de eventos activos
-                eventos.forEach(ev => {
-                    if(ev.coords) {
-                        L.marker(ev.coords).addTo(map)
-                            .bindPopup(`<b>${ev.nombre}</b><br>${ev.lugar}`)
-                            .openPopup();
-                    }
-                });
-
-                mapRef.current = map;
+                if(document.getElementById('mapa-global') && !document.getElementById('mapa-global')._leaflet_id) {
+                    const map = L.map('mapa-global').setView([-29.9045, -71.2550], 13);
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+                    eventos.forEach(ev => {
+                        if(ev.coords) L.marker(ev.coords).addTo(map).bindPopup(`<b>${ev.nombre}</b><br>${new Date(ev.fecha).toLocaleString()}`);
+                    });
+                }
             }, [eventos]);
 
-            const vipsEnSala = vips.filter(v => v.estado === 'presente').length;
+            const vipsPresentes = autoridades.filter(a => a.estado === 'presente').length;
 
             return (
                 <div className="space-y-6">
-                    {/* TARJETAS DE ESTADÍSTICAS */}
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <TarjetaStat titulo="Eventos Activos" valor={eventos.length} color="bg-blue-600" icono="Calendar" />
-                        <TarjetaStat titulo="Autoridades en Sala" valor={`${vipsEnSala}/${vips.length}`} color="bg-purple-600" icono="Users" />
-                        <TarjetaStat titulo="Alertas Territoriales" valor="0" color="bg-green-600" icono="Activity" />
+                        <StatCard label="Eventos en Agenda" val={eventos.length} icon="Calendar" color="bg-blue-600" />
+                        <StatCard label="Autoridades en Sala" val={`${vipsPresentes} / ${autoridades.length}`} icon="Users" color="bg-ls-red" />
+                        <StatCard label="Prensa Acreditada" val="12" icon="Camera" color="bg-ls-stone" />
                     </div>
-
-                    {/* SECCIÓN DEL MAPA */}
-                    <div className="bg-white p-4 rounded-xl shadow-lg border border-gray-200">
-                        <h3 className="font-bold text-gray-700 mb-4 flex items-center gap-2">
-                            <i data-lucide="MapPin"></i> Georeferencia en Tiempo Real
-                        </h3>
-                        <div id="mapid" className="map-container shadow-inner border-2 border-gray-300"></div>
+                    <div className="glass-panel p-4 rounded-xl shadow-sm">
+                        <h3 className="font-bold text-gray-600 mb-4 flex items-center gap-2"><i data-lucide="Map"></i> Despliegue Territorial</h3>
+                        <div id="mapa-global" className="map-container"></div>
                     </div>
                 </div>
             );
         }
 
-        // --- 2. MÓDULO SECRETARÍA (CON "MAGIA" DE BÚSQUEDA) ---
-        function ModuloSecretaria({ onGuardar }) {
-            const [decreto, setDecreto] = useState("");
-            const [buscando, setBuscando] = useState(false);
-            const [resultadoDecreto, setResultadoDecreto] = useState(null);
-            const [form, setForm] = useState({ nombre: "", lugar: "El Faro" });
-
-            // La Magia: Buscar decreto al escribir
-            useEffect(() => {
-                if(decreto.length >= 3) {
-                    setBuscando(true);
-                    setResultadoDecreto(null);
-                    // Simular retraso de red
-                    setTimeout(() => {
-                        const encontrado = DB_DECRETOS[decreto];
-                        setResultadoDecreto(encontrado || { error: "No encontrado en base municipal" });
-                        setBuscando(false);
-                    }, 800);
-                }
-            }, [decreto]);
-
+        // 2. SECRETARÍA: INGRESO DE FECHAS
+        function Secretaria({ onGuardar }) {
+            const [form, setForm] = useState({ nombre: '', fecha: '', lugar: 'Edificio Consistorial', decreto: '' });
+            
             const guardar = (e) => {
                 e.preventDefault();
-                const coords = UBICACIONES[form.lugar] || [-29.9027, -71.2520]; // Default plaza
-                onGuardar({ ...form, decreto, coords, id: Date.now() });
-                alert("Evento georeferenciado y guardado exitosamente.");
+                const coords = UBICACIONES[form.lugar] || [-29.9027, -71.2520];
+                onGuardar({ ...form, id: Date.now(), coords });
+                alert("Evento Sincronizado en Red");
+                setForm({ nombre: '', fecha: '', lugar: 'Edificio Consistorial', decreto: '' });
             };
 
             return (
-                <div className="max-w-2xl mx-auto bg-white p-8 rounded-2xl shadow-xl">
-                    <h3 className="text-xl font-bold mb-6 text-serena-blue">Nuevo Hito Municipal</h3>
-                    <form onSubmit={guardar} className="space-y-4">
+                <div className="glass-panel p-8 rounded-2xl shadow-lg max-w-2xl mx-auto">
+                    <form onSubmit={guardar} className="space-y-6">
+                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 flex items-start gap-3">
+                            <i data-lucide="Info" className="text-blue-500 shrink-0 mt-1"></i>
+                            <p className="text-xs text-blue-800">Al ingresar la fecha y hora exacta, se sincronizarán automáticamente las cuentas regresivas en el Panel Técnico y Protocolo.</p>
+                        </div>
                         
-                        {/* Búsqueda de Decreto "Mágica" */}
-                        <div className="bg-slate-50 p-4 rounded-xl border border-blue-100">
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">N° Decreto Municipal</label>
-                            <div className="flex items-center gap-2">
-                                <input 
-                                    type="text" 
-                                    className="w-24 p-2 border rounded-lg font-mono font-bold text-center"
-                                    placeholder="Ej: 450"
-                                    value={decreto}
-                                    onChange={(e) => setDecreto(e.target.value)}
-                                />
-                                {buscando && <div className="loader"></div>}
-                                {!buscando && resultadoDecreto && !resultadoDecreto.error && (
-                                    <span className="text-green-600 text-sm font-bold flex items-center gap-1">
-                                        ✓ {resultadoDecreto.titulo} ({resultadoDecreto.fecha})
-                                    </span>
-                                )}
-                                {!buscando && resultadoDecreto && resultadoDecreto.error && (
-                                    <span className="text-red-500 text-sm">{resultadoDecreto.error}</span>
-                                )}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label className="label">Nombre del Evento</label>
+                                <input required className="input" placeholder="Ej: Inauguración CESFAM" value={form.nombre} onChange={e=>setForm({...form, nombre: e.target.value})} />
+                            </div>
+                            <div>
+                                <label className="label">N° Decreto</label>
+                                <input className="input" placeholder="Buscar..." value={form.decreto} onChange={e=>setForm({...form, decreto: e.target.value})} />
+                            </div>
+                            <div>
+                                <label className="label">Fecha y Hora (Inicio)</label>
+                                <input required type="datetime-local" className="input" value={form.fecha} onChange={e=>setForm({...form, fecha: e.target.value})} />
+                            </div>
+                            <div>
+                                <label className="label">Recinto</label>
+                                <select className="input" value={form.lugar} onChange={e=>setForm({...form, lugar: e.target.value})}>
+                                    {Object.keys(UBICACIONES).map(u => <option key={u} value={u}>{u}</option>)}
+                                </select>
                             </div>
                         </div>
-
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Nombre del Evento</label>
-                            <input required className="w-full p-3 border rounded-lg" placeholder="Ej: Aniversario La Serena" 
-                                value={form.nombre} onChange={e=>setForm({...form, nombre: e.target.value})} />
-                        </div>
-
-                        <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Lugar (Georeferencia)</label>
-                            <select className="w-full p-3 border rounded-lg bg-white" 
-                                value={form.lugar} onChange={e=>setForm({...form, lugar: e.target.value})}>
-                                {Object.keys(UBICACIONES).map(lugar => <option key={lugar} value={lugar}>{lugar}</option>)}
-                            </select>
-                        </div>
-
-                        <button className="w-full bg-serena-blue text-white py-4 rounded-xl font-bold hover:bg-blue-800 transition shadow-lg flex justify-center items-center gap-2">
-                            <i data-lucide="Save"></i> Guardar y Publicar
-                        </button>
+                        <button className="btn-primary w-full"><i data-lucide="Save"></i> Sincronizar Evento</button>
                     </form>
                 </div>
             );
         }
 
-        // --- 3. MÓDULO PROTOCOLO ---
-        function ModuloProtocolo({ vips, setVips }) {
-            const toggle = (id) => {
-                setVips(vips.map(v => v.id === id ? { ...v, estado: v.estado === 'pendiente' ? 'presente' : 'pendiente' } : v));
+        // 3. PROTOCOLO: GESTIÓN DE AUTORIDADES REALES
+        function Protocolo({ lista, setLista }) {
+            const checkIn = (id) => {
+                setLista(lista.map(a => a.id === id ? { ...a, estado: a.estado === 'pendiente' ? 'presente' : 'pendiente' } : a));
             };
 
             return (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {vips.map(vip => (
-                        <div key={vip.id} onClick={() => toggle(vip.id)} 
-                             className={`cursor-pointer p-6 rounded-2xl border-2 transition-all shadow-md flex justify-between items-center ${vip.estado === 'presente' ? 'bg-green-50 border-green-500' : 'bg-white border-transparent hover:border-gray-300'}`}>
-                            <div>
-                                <h4 className="font-bold text-lg text-gray-800">{vip.nombre}</h4>
-                                <span className="text-xs uppercase font-bold text-gray-400">{vip.cargo}</span>
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                    {lista.map(vip => (
+                        <div key={vip.id} className={`p-4 rounded-xl border-l-4 shadow-sm transition-all flex justify-between items-center bg-white ${vip.estado === 'presente' ? 'border-green-500 bg-green-50' : 'border-gray-300'}`}>
+                            <div className="flex items-center gap-4">
+                                <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold text-lg ${vip.estado === 'presente' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-500'}`}>
+                                    {vip.nombre.charAt(0)}
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-gray-800">{vip.nombre}</h4>
+                                    <p className="text-xs font-bold text-ls-red uppercase">{vip.cargo}</p>
+                                    <div className="flex gap-2 mt-1">
+                                        <span className="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-500 border border-gray-200">Vocativo: {vip.vocativo}</span>
+                                        {vip.estado === 'presente' && (
+                                            <span className="text-[10px] bg-ls-gold text-white px-2 py-0.5 rounded font-bold animate-pulse">Asiento: {vip.precedencia}</span>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
-                            <div className={`w-12 h-12 rounded-full flex items-center justify-center ${vip.estado === 'presente' ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-400'}`}>
-                                <i data-lucide={vip.estado === 'presente' ? 'Check' : 'User'}></i>
-                            </div>
+                            <button onClick={() => checkIn(vip.id)} className={`px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-2 ${vip.estado === 'presente' ? 'bg-green-600 text-white hover:bg-green-700' : 'bg-gray-800 text-white hover:bg-gray-700'}`}>
+                                <i data-lucide={vip.estado === 'presente' ? 'UserCheck' : 'User'}></i>
+                                {vip.estado === 'presente' ? 'EN SALA' : 'CHECK-IN'}
+                            </button>
                         </div>
                     ))}
                 </div>
             );
         }
 
-        // --- 4. MÓDULO TÉCNICO ---
-        function ModuloTecnico({ eventos }) {
-            const [segundos, setSegundos] = useState(0);
-            const [activo, setActivo] = useState(false);
-            
-            useEffect(() => {
-                let int;
-                if(activo) int = setInterval(() => setSegundos(s => s + 1), 1000);
-                return () => clearInterval(int);
-            }, [activo]);
+        // 4. TÉCNICO: MULTI-EVENTO SIMULTÁNEO
+        function Tecnico({ eventos }) {
+            return (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {eventos.map(ev => (
+                        <CronometroCard key={ev.id} evento={ev} />
+                    ))}
+                    {eventos.length === 0 && <p className="text-gray-400 italic">No hay eventos activos.</p>}
+                </div>
+            );
+        }
 
-            const eventoActual = eventos[0]; // Tomamos el primero por defecto
+        const CronometroCard = ({ evento }) => {
+            const [timeLeft, setTimeLeft] = useState("");
+            const [status, setStatus] = useState("pending"); // pending, running, finished
+
+            useEffect(() => {
+                const interval = setInterval(() => {
+                    const now = new Date();
+                    const target = new Date(evento.fecha);
+                    const diff = target - now;
+
+                    if (diff < 0) {
+                        // Evento ya inició (cuenta progresiva o mensaje)
+                        setTimeLeft("EN CURSO");
+                        setStatus("running");
+                    } else {
+                        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+                        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                        setTimeLeft(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+                        setStatus("pending");
+                    }
+                }, 1000);
+                return () => clearInterval(interval);
+            }, [evento]);
 
             return (
-                <div className="bg-black text-white p-8 rounded-3xl shadow-2xl relative overflow-hidden border-b-8 border-red-600">
-                    <div className="flex justify-between items-start z-10 relative">
-                        <div>
-                            <span className="bg-red-600 px-3 py-1 rounded text-xs font-bold uppercase tracking-widest animate-pulse">En Aire</span>
-                            <h2 className="text-4xl font-black mt-4">{eventoActual?.nombre || "Sin Evento"}</h2>
-                            <p className="text-gray-400 mt-2 flex items-center gap-2"><i data-lucide="MapPin" size="16"></i> {eventoActual?.lugar}</p>
-                        </div>
-                        <div className="text-right">
-                            <div className="text-8xl font-mono font-bold text-serena-gold tracking-tighter">
-                                {new Date(segundos * 1000).toISOString().substr(14, 5)}
-                            </div>
-                            <p className="text-xs uppercase tracking-[0.3em] text-gray-500 mt-2">Tiempo Transcurrido</p>
+                <div className="bg-ls-stone text-white rounded-2xl p-6 shadow-2xl border-t-4 border-ls-red relative overflow-hidden">
+                    <div className="flex justify-between items-start mb-4">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-widest ${status === 'running' ? 'bg-ls-red animate-pulse' : 'bg-blue-600'}`}>
+                            {status === 'running' ? 'AL AIRE' : 'PRÓXIMAMENTE'}
+                        </span>
+                        <i data-lucide="Radio" className="text-gray-600"></i>
+                    </div>
+                    <h3 className="text-xl font-bold mb-1">{evento.nombre}</h3>
+                    <p className="text-xs text-gray-400 flex items-center gap-1 mb-6"><i data-lucide="MapPin" size="12"></i> {evento.lugar}</p>
+                    
+                    <div className="bg-black/30 rounded-xl p-4 text-center border border-white/10">
+                        <span className="text-4xl lg:text-5xl font-mono font-bold tracking-tight text-ls-gold countdown-digits">
+                            {timeLeft}
+                        </span>
+                        <p className="text-[9px] uppercase tracking-[0.3em] text-gray-500 mt-2">Cuenta Regresiva</p>
+                    </div>
+                </div>
+            )
+        }
+
+        // 5. PRENSA: SUBMENÚ Y GALERÍA
+        function Prensa({ eventos }) {
+            const [selectedEvent, setSelectedEvent] = useState(eventos[0]);
+
+            return (
+                <div className="flex flex-col md:flex-row h-[600px] glass-panel rounded-xl shadow-lg overflow-hidden">
+                    {/* Submenú Izquierdo */}
+                    <div className="w-full md:w-1/3 bg-gray-50 border-r border-gray-200 p-4 overflow-y-auto">
+                        <h3 className="text-xs font-bold text-gray-400 uppercase mb-4 px-2">Seleccionar Cobertura</h3>
+                        <div className="space-y-2">
+                            {eventos.map(ev => (
+                                <button key={ev.id} onClick={() => setSelectedEvent(ev)}
+                                    className={`w-full text-left p-3 rounded-lg text-sm transition-all flex items-center justify-between ${selectedEvent?.id === ev.id ? 'bg-blue-600 text-white shadow-md' : 'hover:bg-gray-200 text-gray-700'}`}>
+                                    <span className="font-bold truncate">{ev.nombre}</span>
+                                    <i data-lucide="ChevronRight" size="14"></i>
+                                </button>
+                            ))}
                         </div>
                     </div>
-                    
-                    <div className="mt-12 grid grid-cols-2 gap-4 z-10 relative">
-                        <button onClick={() => setActivo(!activo)} className={`py-6 rounded-xl font-bold text-xl flex justify-center items-center gap-3 ${activo ? 'bg-yellow-600' : 'bg-green-600'}`}>
-                            <i data-lucide={activo ? 'Pause' : 'Play'}></i> {activo ? 'PAUSAR' : 'INICIAR'}
-                        </button>
-                        <button onClick={() => {setActivo(false); setSegundos(0)}} className="bg-gray-800 py-6 rounded-xl font-bold text-xl text-gray-400">
-                            REINICIAR
-                        </button>
+
+                    {/* Galería Derecha */}
+                    <div className="w-full md:w-2/3 p-6 bg-white overflow-y-auto">
+                        <div className="flex justify-between items-center mb-6">
+                            <div>
+                                <h2 className="text-xl font-bold text-gray-800">{selectedEvent?.nombre}</h2>
+                                <p className="text-xs text-gray-500">{new Date(selectedEvent?.fecha).toLocaleString()}</p>
+                            </div>
+                            <button className="bg-ls-stone text-white px-4 py-2 rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-black transition">
+                                <i data-lucide="UploadCloud"></i> Subir Material
+                            </button>
+                        </div>
+
+                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+                            {/* Placeholders de Galería */}
+                            {[1,2,3,4,5,6].map(i => (
+                                <div key={i} className="aspect-square bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center relative group cursor-pointer overflow-hidden">
+                                    <i data-lucide="Image" className="text-gray-300 group-hover:scale-110 transition-transform duration-300"></i>
+                                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold">
+                                        Ver Archivo
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
                     </div>
                 </div>
             );
         }
 
-        function ModuloPrensa() {
-            return (
-                <div className="bg-white p-10 rounded-3xl text-center shadow-lg border-2 border-dashed border-gray-300 hover:border-blue-500 transition-colors cursor-pointer group">
-                    <i data-lucide="CloudUpload" size="64" className="mx-auto text-gray-300 group-hover:text-blue-500 transition-colors mb-4"></i>
-                    <h3 className="text-2xl font-bold text-gray-700">Subir Material Audiovisual</h3>
-                    <p className="text-gray-400 mt-2">Arrastra fotos aquí para distribución inmediata a RRPP</p>
-                </div>
-            )
-        }
+        // UTILS
+        const MenuBtn = ({ id, icon, label, active, onClick }) => (
+            <button onClick={onClick} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-1 transition-all ${active ? 'bg-ls-red text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}>
+                <i data-lucide={icon} size="18"></i>
+                <span className="hidden lg:inline text-sm font-semibold">{label}</span>
+            </button>
+        );
 
-        // --- COMPONENTES UI ---
-        const BotonMenu = ({ icono, label, activo, onClick }) => {
-            // Renderizamos el icono usando data-lucide attribute logic simulada
-            // Nota: En React puro usaríamos el componente Lucide, pero aquí usamos CDN
-            return (
-                <button onClick={onClick} 
-                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${activo ? 'bg-serena-blue text-white shadow-lg' : 'text-gray-400 hover:bg-gray-800 hover:text-white'}`}>
-                    <i data-lucide={icono} width="20"></i>
-                    <span className="font-semibold text-sm">{label}</span>
-                </button>
-            )
-        }
-
-        const TarjetaStat = ({ titulo, valor, color, icono }) => (
+        const StatCard = ({ label, val, icon, color }) => (
             <div className={`${color} text-white p-6 rounded-2xl shadow-lg relative overflow-hidden`}>
                 <div className="relative z-10">
-                    <p className="text-xs uppercase opacity-80 font-bold mb-1">{titulo}</p>
-                    <p className="text-4xl font-black">{valor}</p>
+                    <p className="text-xs uppercase opacity-80 font-bold">{label}</p>
+                    <p className="text-3xl font-black mt-1">{val}</p>
                 </div>
-                <div className="absolute right-4 bottom-4 opacity-20 transform scale-150">
-                    <i data-lucide={icono} size="48"></i>
-                </div>
+                <div className="absolute right-3 bottom-3 opacity-20"><i data-lucide={icon} size="40"></i></div>
             </div>
-        )
+        );
 
-        const obtenerTitulo = (v) => {
-            const titulos = { dashboard: 'Panel de Control Unificado', secretaria: 'Gestión Administrativa', protocolo: 'Control de Acceso VIP', tecnico: 'Monitor de Escenario', prensa: 'Distribución de Medios' };
-            return titulos[v];
-        }
+        const obtenerTitulo = (v) => ({ dashboard: 'Inteligencia Territorial', secretaria: 'Gestión de Hitos', protocolo: 'Protocolo Institucional', tecnico: 'Control Técnico de Eventos', prensa: 'Hub de Prensa' }[v]);
+        const obtenerIcono = (v) => ({ dashboard: 'Map', secretaria: 'FileText', protocolo: 'Award', tecnico: 'Cpu', prensa: 'Share2' }[v]);
 
-        // RENDERIZADO
+        // RENDER
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<SerenitoApp />);
-
-        // Inicializar iconos después del render
-        setTimeout(() => lucide.createIcons(), 100);
-        // Reinicializar iconos al cambiar vista (truco para React + Lucide CDN)
-        setInterval(() => lucide.createIcons(), 1000);
+        
+        // ICONS INIT
+        setInterval(() => lucide.createIcons(), 500);
 
     </script>
+    <style>
+        .input { width: 100%; padding: 0.75rem; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 0.5rem; outline: none; transition: border-color 0.2s; }
+        .input:focus { border-color: #3b82f6; ring: 2px solid #3b82f6; }
+        .label { display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 0.25rem; }
+        .btn-primary { background: #1e3a8a; color: white; padding: 1rem; border-radius: 0.75rem; font-weight: bold; display: flex; justify-content: center; align-items: center; gap: 0.5rem; transition: background 0.2s; }
+        .btn-primary:hover { background: #1e40af; }
+    </style>
 </body>
 </html>
