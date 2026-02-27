@@ -1,7 +1,9 @@
 [
   { "id": 101, "nombre": "Gabriel Boric Font", "cargo": "S.E. Presidente de la República", "vocativo": "Su Excelencia", "categoria": "Nacional VIP", "precedencia": 1, "presente": false, "foto": "" },
-  { "id": 400, "nombre": "Daniela Norambuena", "cargo": "Alcaldesa de La Serena", "vocativo": "Sra. Alcaldesa", "categoria": "Municipal Anfitrión", "precedencia": 2, "presente": true, "foto": "" },
+  { "id": 102, "nombre": "José García Ruminot", "cargo": "Presidente del Senado", "vocativo": "Honorable Senador", "categoria": "Nacional VIP", "precedencia": 2, "presente": false, "foto": "" },
   
+  { "id": 400, "nombre": "Daniela Norambuena", "cargo": "Alcaldesa de La Serena", "vocativo": "Sra. Alcaldesa", "categoria": "Municipal Anfitrión", "precedencia": 3, "presente": true, "foto": "" },
+
   { "id": 201, "nombre": "Cristóbal Juliá", "cargo": "Gobernador Regional", "vocativo": "Sr. Gobernador", "categoria": "Regional", "precedencia": 10, "presente": false, "foto": "" },
   { "id": 202, "nombre": "Galo Luna Penna", "cargo": "Delegado Presidencial Regional", "vocativo": "Sr. Delegado", "categoria": "Regional", "precedencia": 11, "presente": false, "foto": "" },
 
