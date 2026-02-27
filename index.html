@@ -43,7 +43,7 @@
     <script type="text/babel">
         const { useState, useEffect, useRef, useMemo } = React;
 
-        // DATOS INICIALES MULTI-EVENTO CON CHECKLISTS LARGOS
+        // DATOS INICIALES MULTI-EVENTO CON CHECKLISTS GRANDES
         const EVENTOS_INICIALES = [
             { 
                 id: 1, nombre: "Inauguración Plaza de Armas", fecha: "2026-04-28T11:00", lugar: "Plaza de Armas", 
@@ -60,7 +60,10 @@
                     { id: 9, tarea: "Agua Mineral para Autoridades", listo: false },
                     { id: 10, tarea: "Atril para Locutor", listo: true },
                     { id: 11, tarea: "Música de Fondo y Himno Nacional", listo: false },
-                    { id: 12, tarea: "Fotógrafo Oficial Confirmado", listo: false }
+                    { id: 12, tarea: "Fotógrafo Oficial Confirmado", listo: false },
+                    { id: 13, tarea: "Dispositivos de Seguridad (Vallas)", listo: false },
+                    { id: 14, tarea: "Limpieza Previa del Recinto", listo: true },
+                    { id: 15, tarea: "Personal de Protocolo en Puntos", listo: false }
                 ]
             },
             { 
@@ -99,24 +102,26 @@
             const [locutorNombre, setLocutorNombre] = useState("");
             const [errorCarga, setErrorCarga] = useState(null);
 
+            // CARGA ROBUSTA CON CACHE BUSTING (Para que se vea la lista nueva sí o sí)
             useEffect(() => {
-                const stored = localStorage.getItem('serenito_db_v15');
+                const stored = localStorage.getItem('serenito_db_v16');
                 if(stored) {
                     setAutoridades(JSON.parse(stored));
                 } else {
-                    fetch('autoridades_coquimbo_2026.json')
+                    // Agregamos ?t=timestamp para evitar que el navegador use una versión vieja del JSON
+                    fetch(`autoridades_coquimbo_2026.json?t=${Date.now()}`)
                         .then(res => res.ok ? res.json() : Promise.reject("Error JSON"))
                         .then(data => {
                             const sorted = data.sort((a, b) => a.precedencia - b.precedencia);
                             setAutoridades(sorted);
-                            localStorage.setItem('serenito_db_v15', JSON.stringify(sorted));
+                            localStorage.setItem('serenito_db_v16', JSON.stringify(sorted));
                         })
-                        .catch(err => setErrorCarga("⚠️ Error cargando JSON."));
+                        .catch(err => setErrorCarga("⚠️ Cargando datos de respaldo... (Verifique conexión)"));
                 }
             }, []);
 
             useEffect(() => {
-                if(autoridades.length > 0) localStorage.setItem('serenito_db_v15', JSON.stringify(autoridades));
+                if(autoridades.length > 0) localStorage.setItem('serenito_db_v16', JSON.stringify(autoridades));
             }, [autoridades]);
 
             const navegar = (v) => { setVista(v); setMenuOpen(false); }
@@ -205,11 +210,16 @@
         function Secretaria({ onGuardar }) {
             const [form, setForm] = useState({ nombre: '', responsable: '', fecha: '', coords: null, direccion: '' });
             const mapRef = useRef(null);
+            
+            // CORRECCIÓN MAPA SECRETARÍA (Marcador único)
             useEffect(() => {
                 if(!mapRef.current && document.getElementById('mapa-geo')) {
                     const map = L.map('mapa-geo').setView([-29.9045, -71.2550], 14);
                     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
                     map.on('click', (e) => {
+                        // Limpiar marcadores previos para que solo quede uno
+                        map.eachLayer((layer) => { if (layer instanceof L.Marker) map.removeLayer(layer); });
+                        
                         L.marker(e.latlng).addTo(map);
                         const dir = `Calle Simulada #${Math.floor(Math.random()*5000)}`;
                         setForm(prev => ({ ...prev, coords: [e.latlng.lat, e.latlng.lng], direccion: dir }));
@@ -217,6 +227,7 @@
                     mapRef.current = map;
                 }
             }, []);
+            
             const guardar = (e) => {
                 e.preventDefault();
                 if(!form.coords) return alert("Seleccione ubicación en mapa");
@@ -233,7 +244,7 @@
                             <input required className="w-full p-3 bg-gray-50 border rounded-lg" value={form.responsable} onChange={e=>setForm({...form, responsable:e.target.value})} placeholder="Responsable" />
                             <input type="datetime-local" required className="w-full p-3 bg-gray-50 border rounded-lg" value={form.fecha} onChange={e=>setForm({...form, fecha:e.target.value})} />
                             <div className="bg-blue-50 p-3 rounded text-sm text-blue-800 border border-blue-100"><i data-lucide="MapPin" size={14} className="inline mr-2"/> {form.direccion || "Seleccione en el mapa..."}</div>
-                            <button className="w-full bg-ls-red text-white font-bold py-3 rounded-xl shadow-md hover:bg-red-800 transition">Registrar Hito</button>
+                            <button type="submit" className="w-full bg-ls-red text-white font-bold py-3 rounded-xl shadow-md hover:bg-red-800 transition">Registrar Hito</button>
                         </form>
                     </div>
                     <div className="rounded-2xl overflow-hidden shadow-lg border border-gray-200"><div id="mapa-geo" className="map-container"></div></div>
@@ -291,8 +302,8 @@
             );
         }
 
-        // TÉCNICA MULTI-EVENTO
         function Tecnica({ eventos, setEventos }) {
+            // CORRECCIÓN TÉCNICA (Selección Segura)
             const [selId, setSelId] = useState(eventos.length > 0 ? eventos[0].id : null);
             const sel = eventos.find(e => e.id === selId);
 
@@ -312,30 +323,31 @@
                 }
             }
 
-            if(!sel) return <div className="p-10 text-center text-gray-400">No hay eventos activos. Cree uno en Secretaría.</div>;
+            // Mensaje si no hay evento seleccionado
+            if(!sel) return <div className="flex h-full items-center justify-center text-gray-400 font-bold">Seleccione un hito para ver su ficha.</div>;
 
             return (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
                     <div className="lg:col-span-1 space-y-3 overflow-y-auto pr-2 border-r border-gray-100">
                         <h2 className="font-black text-lg text-ls-red mb-2">Seleccionar Ficha</h2>
                         {eventos.map(ev => (
-                            <div key={ev.id} onClick={() => setSelId(ev.id)} className={`p-4 rounded-xl cursor-pointer border transition-all ${sel.id === ev.id ? 'bg-ls-red text-white shadow-md' : 'bg-white hover:bg-gray-50 border-gray-200'}`}>
+                            <button type="button" key={ev.id} onClick={() => setSelId(ev.id)} className={`w-full text-left p-4 rounded-xl cursor-pointer border transition-all ${sel.id === ev.id ? 'bg-ls-red text-white shadow-md' : 'bg-white hover:bg-gray-50 border-gray-200'}`}>
                                 <h3 className="font-bold text-sm">{ev.nombre}</h3>
                                 <div className="flex justify-between mt-2 text-[10px] opacity-80"><span>{ev.responsable}</span><span>{ev.checklist.filter(t=>t.listo).length}/{ev.checklist.length} OK</span></div>
-                            </div>
+                            </button>
                         ))}
                     </div>
                     <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-lg border-t-4 border-ls-yellow flex flex-col">
                          <div className="flex justify-between items-start mb-4">
                              <div><h2 className="font-black text-xl">{sel.nombre}</h2><p className="text-sm text-gray-500">{sel.direccion}</p></div>
-                             <button onClick={agregarManual} className="bg-gray-100 p-2 rounded-lg hover:bg-gray-200 text-xs font-bold flex gap-1"><i data-lucide="PlusSquare" size={14}></i> Variable</button>
+                             <button type="button" onClick={agregarManual} className="bg-gray-100 p-2 rounded-lg hover:bg-gray-200 text-xs font-bold flex gap-1"><i data-lucide="PlusSquare" size={14}></i> Variable</button>
                          </div>
                          <div className="space-y-2 flex-1 overflow-y-auto">
                             {sel.checklist.map(t => (
-                                <div key={t.id} onClick={() => toggle(t.id)} className={`p-3 rounded-lg border cursor-pointer flex justify-between items-center ${t.listo ? 'bg-green-50 border-green-500 text-green-700' : 'bg-white hover:bg-gray-50'}`}>
+                                <button type="button" key={t.id} onClick={() => toggle(t.id)} className={`w-full p-3 rounded-lg border cursor-pointer flex justify-between items-center ${t.listo ? 'bg-green-50 border-green-500 text-green-700' : 'bg-white hover:bg-gray-50'}`}>
                                     <span className={`text-sm font-bold ${t.listo ? 'line-through' : ''}`}>{t.tarea}</span>
                                     {t.listo ? <i data-lucide="CheckCircle2" size={18}></i> : <div className="w-4 h-4 rounded-full border-2 border-gray-300"></div>}
-                                </div>
+                                </button>
                             ))}
                          </div>
                     </div>
