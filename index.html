@@ -31,16 +31,16 @@
       }
     </script>
     <style>
-        /* Corrección Mapa Apretado */
         .map-full { width: 100%; height: 100%; min-height: 600px; z-index: 1; border-radius: 1rem; }
         .map-mini { height: 100%; min-height: 300px; width: 100%; border-radius: 0.5rem; z-index: 1; }
-        
         .scroll-hide::-webkit-scrollbar { display: none; }
         .glass { background: rgba(255,255,255,0.95); backdrop-filter: blur(5px); border: 1px solid rgba(0,0,0,0.1); }
         .avatar-img { width: 100%; height: 100%; object-fit: cover; }
-        
         .pulse-icon { background-color: #b91c1c; border-radius: 50%; width: 24px; height: 24px; border: 3px solid white; animation: pulse 1.5s infinite; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(185, 28, 28, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(185, 28, 28, 0); } }
+        
+        /* Barra de Progreso Animada */
+        .progress-bar { transition: width 0.5s ease-in-out; }
     </style>
 </head>
 <body class="bg-ls-gray text-slate-800 overflow-x-hidden font-sans h-screen flex flex-col">
@@ -49,7 +49,7 @@
     <script type="text/babel">
         const { useState, useEffect, useRef, useMemo } = React;
 
-        // DATOS INICIALES MULTI-EVENTO
+        // --- DATOS INICIALES MULTI-EVENTO (4 Eventos Completos) ---
         const EVENTOS_INICIALES = [
             { 
                 id: 1, nombre: "Inauguración Plaza de Armas", fecha: "2026-04-28T11:00", lugar: "Plaza de Armas", 
@@ -97,6 +97,17 @@
                     { id: 5, tarea: "Punto de Hidratación Alumnos", listo: false },
                     { id: 6, tarea: "Ambulancia en Terreno", listo: false }
                 ]
+            },
+            { 
+                id: 4, nombre: "Show Aniversario La Serena", fecha: "2026-08-26T20:00", lugar: "Estadio La Portada", 
+                direccion: "Av. Estadio #1400", coords: [-29.912, -71.256], estado: "Planificación", responsable: "Productora Externa", 
+                checklist: [
+                    { id: 1, tarea: "Escenario Principal 20x15m", listo: false },
+                    { id: 2, tarea: "Camerinos Artistas Habilitados", listo: false },
+                    { id: 3, tarea: "Seguridad Privada (50 Guardias)", listo: false },
+                    { id: 4, tarea: "Corte de Ticket / Accesos", listo: false },
+                    { id: 5, tarea: "Prueba de Sonido", listo: false }
+                ]
             }
         ];
 
@@ -110,7 +121,7 @@
 
             // CARGA DE BASE DE DATOS
             useEffect(() => {
-                const stored = localStorage.getItem('serenito_db_v18');
+                const stored = localStorage.getItem('serenito_db_v19');
                 if(stored) {
                     setAutoridades(JSON.parse(stored));
                 } else {
@@ -120,14 +131,14 @@
                         .then(data => {
                             const sorted = data.sort((a, b) => a.precedencia - b.precedencia);
                             setAutoridades(sorted);
-                            localStorage.setItem('serenito_db_v18', JSON.stringify(sorted));
+                            localStorage.setItem('serenito_db_v19', JSON.stringify(sorted));
                         })
                         .catch(err => setErrorCarga("⚠️ Error conectando a la base de datos."));
                 }
             }, []);
 
             useEffect(() => {
-                if(autoridades.length > 0) localStorage.setItem('serenito_db_v18', JSON.stringify(autoridades));
+                if(autoridades.length > 0) localStorage.setItem('serenito_db_v19', JSON.stringify(autoridades));
             }, [autoridades]);
 
             const navegar = (v) => { setVista(v); setMenuOpen(false); }
@@ -187,7 +198,7 @@
             );
         }
 
-        // --- 1. DASHBOARD (MAPA FULL SCREEN REPARADO) ---
+        // --- 1. DASHBOARD ---
         function Dashboard({ eventos }) {
             const mapRef = useRef(null);
             useEffect(() => {
@@ -208,10 +219,8 @@
                         <h2 className="text-2xl font-black text-ls-red uppercase flex gap-2 items-center"><i data-lucide="Map"></i> Despliegue Territorial</h2>
                         <span className="text-xs font-bold bg-white border px-3 py-1 rounded-full text-gray-500">Vista Satelital IMLS</span>
                     </div>
-                    {/* Contenedor forzado a crecer */}
                     <div className="flex-1 relative rounded-2xl overflow-hidden shadow-2xl border-4 border-white h-full min-h-[500px]">
                         <div id="mapa-tactico" className="map-full"></div>
-                        
                         <div className="absolute top-4 right-4 glass p-4 rounded-xl shadow-xl z-[500] w-64">
                             <h4 className="text-[10px] font-black text-ls-red uppercase mb-3 border-b border-gray-200 pb-2">Resumen Operativo</h4>
                             <div className="space-y-2">
@@ -224,31 +233,34 @@
             );
         }
 
-        // --- 2. TÉCNICA (MULTIEVENTO BLINDADO) ---
+        // --- 2. TÉCNICA (CON CONTADOR Y ALERTA DE LISTO) ---
         function Tecnica({ eventos, setEventos }) {
-            // Guardamos el ÍNDICE en vez del ID para evitar pérdidas de referencia
             const [selectedIndex, setSelectedIndex] = useState(0);
             
-            // Protección: Si no hay eventos, seleccionamos null, si hay, seleccionamos el index seguro
             const sel = eventos[selectedIndex] || eventos[0];
 
-            // Función SEGURA para cambiar de evento
-            const cambiarEvento = (index) => {
+            // Estadísticas del evento seleccionado
+            const totalTasks = sel ? sel.checklist.length : 0;
+            const completedTasks = sel ? sel.checklist.filter(t => t.listo).length : 0;
+            const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
+            const isComplete = totalTasks > 0 && completedTasks === totalTasks;
+
+            const cambiarEvento = (e, index) => {
+                e.preventDefault(); 
+                e.stopPropagation();
                 setSelectedIndex(index);
-            }
+            };
 
             const toggle = (taskId) => {
                 if(!sel) return;
                 const nuevoCheck = sel.checklist.map(t => t.id === taskId ? { ...t, listo: !t.listo } : t);
                 const eventoActualizado = { ...sel, checklist: nuevoCheck };
-                
-                // Actualizamos la lista global reemplazando solo el evento modificado
                 const nuevaLista = eventos.map((ev, i) => i === selectedIndex ? eventoActualizado : ev);
                 setEventos(nuevaLista);
             }
 
             const agregarManual = (e) => {
-                e.preventDefault(); // Previene recarga
+                e.preventDefault();
                 if(!sel) return;
                 const texto = prompt("Nombre de la nueva variable técnica:");
                 if(texto) {
@@ -264,37 +276,64 @@
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
                     {/* Lista Lateral de Eventos */}
                     <div className="lg:col-span-1 space-y-3 overflow-y-auto pr-2 border-r border-gray-200">
-                        <h2 className="font-black text-lg text-ls-red mb-4 flex items-center gap-2"><i data-lucide="List"></i> Seleccionar Ficha</h2>
-                        {eventos.map((ev, index) => (
-                            <button type="button" key={ev.id} onClick={() => cambiarEvento(index)} 
-                                className={`w-full text-left p-4 rounded-xl cursor-pointer border transition-all duration-200 ${selectedIndex === index ? 'bg-ls-red text-white shadow-lg transform scale-105' : 'bg-white hover:bg-gray-50 border-gray-200 text-gray-600'}`}>
-                                <h3 className="font-bold text-sm mb-1">{ev.nombre}</h3>
-                                <div className="flex justify-between items-center text-[10px] opacity-90">
-                                    <span>{ev.responsable}</span>
-                                    <span className={`px-2 py-0.5 rounded ${selectedIndex === index ? 'bg-white/20' : 'bg-gray-100'}`}>{ev.checklist.filter(t=>t.listo).length}/{ev.checklist.length} OK</span>
-                                </div>
-                            </button>
-                        ))}
+                        <h2 className="font-black text-lg text-ls-red mb-4 flex items-center gap-2"><i data-lucide="List"></i> Fichas Activas</h2>
+                        {eventos.map((ev, index) => {
+                            const evTotal = ev.checklist.length;
+                            const evDone = ev.checklist.filter(t=>t.listo).length;
+                            const evIsDone = evTotal > 0 && evTotal === evDone;
+                            
+                            return (
+                                <button type="button" key={ev.id} onClick={(e) => cambiarEvento(e, index)} 
+                                    className={`w-full text-left p-4 rounded-xl cursor-pointer border transition-all duration-200 ${selectedIndex === index ? 'bg-ls-red text-white shadow-lg transform scale-105' : 'bg-white hover:bg-gray-50 border-gray-200 text-gray-600'}`}>
+                                    <div className="flex justify-between items-start">
+                                        <h3 className="font-bold text-sm mb-1 pr-2">{ev.nombre}</h3>
+                                        {evIsDone && <i data-lucide="CheckCircle" className="text-green-400 fill-green-400 text-white" size={16}></i>}
+                                    </div>
+                                    <div className="flex justify-between items-center text-[10px] opacity-90 mt-1">
+                                        <span>{ev.responsable}</span>
+                                        <span className={`px-2 py-0.5 rounded font-bold ${selectedIndex === index ? 'bg-white/20' : (evIsDone ? 'bg-green-100 text-green-700' : 'bg-gray-100')}`}>
+                                            {evDone}/{evTotal}
+                                        </span>
+                                    </div>
+                                </button>
+                            );
+                        })}
                     </div>
 
                     {/* Detalle y Checklist */}
-                    <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-xl border-t-4 border-ls-yellow flex flex-col h-full overflow-hidden">
-                         <div className="flex justify-between items-start mb-6 border-b border-gray-100 pb-4">
-                             <div>
-                                 <h2 className="font-black text-2xl text-gray-800">{sel.nombre}</h2>
+                    <div className={`lg:col-span-2 bg-white p-6 rounded-2xl shadow-xl border-t-8 flex flex-col h-full overflow-hidden ${isComplete ? 'border-green-500' : 'border-ls-yellow'}`}>
+                         {/* Header del Evento */}
+                         <div className="flex justify-between items-start mb-4 border-b border-gray-100 pb-4">
+                             <div className="flex-1">
+                                 <h2 className="font-black text-2xl text-gray-800 flex items-center gap-2">
+                                     {sel.nombre}
+                                     {isComplete && <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full border border-green-200 uppercase font-black tracking-wide">¡Listo para Inicio!</span>}
+                                 </h2>
                                  <p className="text-sm text-gray-500 flex items-center gap-2 mt-1"><i data-lucide="MapPin" size={14}></i> {sel.direccion}</p>
                              </div>
                              <button type="button" onClick={agregarManual} className="bg-ls-gray border border-gray-200 text-gray-600 px-4 py-2 rounded-lg hover:bg-gray-100 text-xs font-bold flex gap-2 items-center transition shadow-sm">
                                  <i data-lucide="PlusSquare" size={16}></i> Añadir Variable
                              </button>
                          </div>
+
+                         {/* BARRA DE PROGRESO GLOBAL */}
+                         <div className="mb-6">
+                             <div className="flex justify-between text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">
+                                 <span>Progreso Producción</span>
+                                 <span className={isComplete ? "text-green-600" : "text-ls-red"}>{completedTasks} de {totalTasks} ítems</span>
+                             </div>
+                             <div className="w-full bg-gray-100 rounded-full h-4 shadow-inner overflow-hidden">
+                                 <div className={`h-4 rounded-full progress-bar shadow-sm ${isComplete ? 'bg-green-500' : 'bg-ls-yellow'}`} style={{width: `${progress}%`}}></div>
+                             </div>
+                         </div>
                          
+                         {/* Lista Scrollable */}
                          <div className="space-y-2 flex-1 overflow-y-auto pr-2">
                             {sel.checklist.map(t => (
                                 <button type="button" key={t.id} onClick={() => toggle(t.id)} 
                                     className={`w-full p-4 rounded-xl border flex justify-between items-center transition-all ${t.listo ? 'bg-green-50 border-green-500 text-green-800 shadow-inner' : 'bg-white border-gray-100 hover:border-gray-300 shadow-sm'}`}>
-                                    <span className={`text-sm font-bold ${t.listo ? 'line-through opacity-60' : ''}`}>{t.tarea}</span>
-                                    {t.listo ? <i data-lucide="CheckCircle2" className="text-green-600" size={20}></i> : <div className="w-5 h-5 rounded-full border-2 border-gray-300"></div>}
+                                    <span className={`text-sm font-bold ${t.listo ? 'line-through opacity-60' : 'text-gray-700'}`}>{t.tarea}</span>
+                                    {t.listo ? <i data-lucide="CheckCircle2" className="text-green-600" size={20}></i> : <div className="w-5 h-5 rounded-full border-2 border-gray-300 bg-gray-50"></div>}
                                 </button>
                             ))}
                          </div>
@@ -303,7 +342,7 @@
             )
         }
 
-        // --- 3. SECRETARÍA (MAPA CORREGIDO - LIMPIEZA DE PIN) ---
+        // --- 3. SECRETARÍA ---
         function Secretaria({ onGuardar }) {
             const [form, setForm] = useState({ nombre: '', responsable: '', fecha: '', coords: null, direccion: '' });
             const mapRef = useRef(null);
@@ -314,9 +353,7 @@
                     L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png').addTo(map);
                     
                     map.on('click', (e) => {
-                        // Borrar capas anteriores (Pines)
                         map.eachLayer((layer) => { if (layer instanceof L.Marker) map.removeLayer(layer); });
-                        
                         L.marker(e.latlng).addTo(map);
                         const dir = `Calle Simulada #${Math.floor(Math.random()*5000)}`;
                         setForm(prev => ({ ...prev, coords: [e.latlng.lat, e.latlng.lng], direccion: dir }));
@@ -328,7 +365,7 @@
             const guardar = (e) => {
                 e.preventDefault();
                 if(!form.coords) return alert("Seleccione ubicación en mapa");
-                onGuardar({ ...form, id: Date.now(), checklist: [{id:1, tarea: "Instalación Básica", listo: false}], estado: "Pendiente", lugar: "Ubicación Mapa" });
+                onGuardar({ ...form, id: Date.now(), checklist: [{id:1, tarea: "Instalación Básica", listo: false}, {id:2, tarea: "Audio", listo: false}], estado: "Pendiente", lugar: "Ubicación Mapa" });
                 alert("Evento creado exitosamente");
                 setForm({ nombre: '', responsable: '', fecha: '', coords: null, direccion: '' });
             }
@@ -359,6 +396,7 @@
             );
         }
 
+        // ... Resto de componentes (Protocolo, Locutor, Admin, Utils) iguales a V18 ...
         function Protocolo({ autoridades, setAutoridades }) {
             const [filtro, setFiltro] = useState("");
             const filtrados = autoridades.filter(a => a.nombre.toLowerCase().includes(filtro.toLowerCase()) || a.cargo.toLowerCase().includes(filtro.toLowerCase()));
