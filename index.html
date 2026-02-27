@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>S.E.R.E.N.I.T.O. | Live Ops - Protocolo Real</title>
+    <title>S.E.R.E.N.I.T.O. | Live Ops 2026 - Protocolo Dinámico</title>
     
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 rx=%2210%22 fill=%22%23b91c1c%22 /><text x=%2250%22 y=%2275%22 font-family=%22Arial%22 font-size=%2270%22 font-weight=%22bold%22 fill=%22white%22 text-anchor=%22middle%22>S</text></svg>">
 
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
@@ -33,349 +31,201 @@
       }
     </script>
     <style>
-        .map-container { height: 350px; width: 100%; border-radius: 0.75rem; z-index: 1; }
         .scroll-hide::-webkit-scrollbar { display: none; }
-        .input { width: 100%; padding: 0.8rem; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 0.5rem; outline: none; transition: border-color 0.2s; }
-        .input:focus { border-color: #1e3a8a; ring: 2px solid #1e3a8a; }
-        .label { display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 0.25rem; }
-        .btn-primary { background: #1e3a8a; color: white; padding: 0.8rem; border-radius: 0.5rem; font-weight: bold; transition: background 0.2s; }
-        .btn-primary:hover { background: #1e40af; }
-
-        /* ANIMACIÓN DE PULSO PARA EVENTOS */
-        .pulse-icon { background-color: #ef4444; border-radius: 50%; width: 20px; height: 20px; border: 3px solid white; box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); animation: pulse-red 1.5s infinite; }
-        @keyframes pulse-red { 0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(239, 68, 68, 0); } 100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
-
-        /* ICONOS DE MÓVILES */
-        .movil-icon { background: white; border-radius: 50%; border: 2px solid #3b82f6; display: flex; align-items: center; justify-content: center; font-size: 14px; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
-        .movil-prod { border-color: #eab308; }
+        input[type="search"]::-webkit-search-cancel-button { cursor: pointer; }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-900 overflow-x-hidden">
+<body class="bg-slate-100 text-slate-900 overflow-x-hidden font-sans">
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect, useRef, useMemo } = React;
 
-        // --- UBICACIONES ---
-        const UBICACIONES = {
-            "El Faro": [-29.9045, -71.2755],
-            "Ed. Consistorial": [-29.9027, -71.2520],
-            "Coliseo": [-29.9126, -71.2566],
-            "Delegación": [-29.9360, -71.2680],
-            "Parque P. Valdivia": [-29.9090, -71.2550]
-        };
-
-        // --- BASE DE DATOS REAL CON PRECEDENCIA AGREGADA ---
-        // Se añade 'precedencia': número menor = más jerarquía.
-        const DB_AUTORIDADES_REAL = [
-            { id: 101, nombre: "Cristóbal Juliá", cargo: "Gobernador Regional", vocativo: "Sr. Gobernador", categoria: "Regional", estado: "pendiente", precedencia: 1 },
-            { id: 102, nombre: "Galo Luna Penna", cargo: "Delegado Presidencial", vocativo: "Sr. Delegado", categoria: "Regional", estado: "pendiente", precedencia: 2 },
-            { id: 103, nombre: "Daniela Norambuena", cargo: "Alcaldesa de La Serena", vocativo: "Sra. Alcaldesa", categoria: "Municipal", estado: "pendiente", precedencia: 3 },
-            { id: 201, nombre: "Sergio Gahona", cargo: "Senador", vocativo: "H. Senador", categoria: "Parlamentario", estado: "pendiente", precedencia: 4 },
-            { id: 301, nombre: "Ricardo Cifuentes", cargo: "Diputado", vocativo: "H. Diputado", categoria: "Parlamentario", estado: "pendiente", precedencia: 5 },
-            { id: 401, nombre: "Rayén Pojomovsky", cargo: "Concejala", vocativo: "Sra. Concejala", categoria: "Concejo", estado: "pendiente", precedencia: 6 },
-            { id: 402, nombre: "Luisa Jinete", cargo: "Concejala", vocativo: "Sra. Concejala", categoria: "Concejo", estado: "pendiente", precedencia: 6 }, // Misma jerarquía
-            { id: 501, nombre: "Luz Martínez", cargo: "DIDECO", vocativo: "Directora", categoria: "Municipal", estado: "pendiente", precedencia: 7 },
-        ];
-
-        // --- MÓVILES EN TERRENO (Simulación GPS) ---
-        const MOVILES_INICIALES = [
-            { id: 'M1', nombre: 'Seguridad 1460', tipo: 'seguridad', lat: -29.9040, lng: -71.2530 },
-            { id: 'M2', nombre: 'Producción Van 1', tipo: 'produccion', lat: -29.9080, lng: -71.2600 },
-            { id: 'M3', nombre: 'Alcaldía 1', tipo: 'oficial', lat: -29.9020, lng: -71.2500 },
-        ];
-
         function SerenitoApp() {
-            const [vista, setVista] = useState('dashboard');
+            // El estado de autoridades se inicializa vacío
+            const [autoridades, setAutoridades] = useState([]);
             const [menuOpen, setMenuOpen] = useState(false);
-            const [eventos, setEventos] = useState([
-                { id: 1, nombre: "Cuenta Pública 2026", fecha: "2026-04-28T11:00", lugar: "Ed. Consistorial", coords: UBICACIONES["Ed. Consistorial"] },
-                { id: 2, nombre: "Festival del Faro", fecha: "2026-02-28T21:00", lugar: "El Faro", coords: UBICACIONES["El Faro"] }
-            ]);
-            const [autoridades, setAutoridades] = useState(DB_AUTORIDADES_REAL);
-            const [moviles, setMoviles] = useState(MOVILES_INICIALES);
+            const [terminoBusqueda, setTerminoBusqueda] = useState("");
 
-            // SIMULACIÓN DE MOVIMIENTO DE MÓVILES (GPS)
+            // --- CARGA DINÁMICA DEL PROTOCOLO (JSON EXTERNO) ---
             useEffect(() => {
-                const intervaloGPS = setInterval(() => {
-                    setMoviles(prevMoviles => prevMoviles.map(m => ({
-                        ...m,
-                        lat: m.lat + (Math.random() - 0.5) * 0.0005,
-                        lng: m.lng + (Math.random() - 0.5) * 0.0005
-                    })));
-                }, 2000);
-                return () => clearInterval(intervaloGPS);
-            }, []);
+                // Hacemos el fetch del archivo JSON creado en el Paso 1
+                fetch('autoridades_2026.json')
+                    .then(response => {
+                        if (!response.ok) { throw new Error("Error cargando base de datos."); }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Seteamos las autoridades cargadas
+                        setAutoridades(data);
+                        console.log(`ProtoDB: ${data.length} autoridades cargadas dinámicamente.`);
+                    })
+                    .catch(error => {
+                        console.error("Critical: Error cargando el protocolo.", error);
+                        // Alerta visual de error para el operador
+                    });
+            }, []); // Se ejecuta solo una vez al inicio
 
-            const navegar = (v) => { setVista(v); setMenuOpen(false); }
+            // --- LÓGICA DE BÚSQUEDA Y FILTRADO ---
+            const autoridadesFiltradas = useMemo(() => {
+                if (!terminoBusqueda.trim()) return autoridades;
+                return autoridades.filter(a => 
+                    a.nombre.toLowerCase().includes(terminoBusqueda.toLowerCase()) ||
+                    a.cargo.toLowerCase().includes(terminoBusqueda.toLowerCase())
+                );
+            }, [autoridades, terminoBusqueda]);
+
+            const navegar = (v) => { /* Lógica de navegación existente */ setMenuOpen(false); }
 
             return (
                 <div className="flex h-screen flex-col md:flex-row overflow-hidden font-sans">
                     
-                    {/* BARRA MÓVIL */}
+                    {/* BARRA MÓVIL SIMULADA */}
                     <div className="md:hidden bg-ls-stone text-white p-4 flex justify-between items-center shadow-md z-50">
                         <div className="flex items-center gap-2">
                             <div className="w-8 h-8 bg-ls-red rounded flex items-center justify-center font-bold">S</div>
-                            <span className="font-bold tracking-tighter">S.E.R.E.N.I.T.O.</span>
+                            <span className="font-bold tracking-tighter">S.E.R.E.N.I.T.O. | Dynamic Proto</span>
                         </div>
                         <button onClick={() => setMenuOpen(!menuOpen)}>
                             <i data-lucide={menuOpen ? "X" : "Menu"} size="28"></i>
                         </button>
                     </div>
 
-                    {/* SIDEBAR */}
-                    <aside className={`
-                        fixed inset-y-0 left-0 z-40 w-72 bg-ls-stone text-white transform transition-transform duration-300 ease-in-out shadow-2xl
-                        ${menuOpen ? 'translate-x-0' : '-translate-x-full'} 
-                        md:relative md:translate-x-0 md:flex md:flex-col
-                    `}>
-                        <div className="p-6 hidden md:flex flex-col items-center border-b border-gray-700 bg-gray-900/20">
-                            <div className="w-14 h-14 bg-ls-red rounded-xl flex items-center justify-center font-black text-4xl shadow-lg mb-3 border-2 border-white/10 animate-pulse">S</div>
-                            <h1 className="text-xl font-black tracking-tighter">S.E.R.E.N.I.T.O.</h1>
-                            <div className="flex items-center gap-2 mt-1">
-                                <span className="w-2 h-2 bg-green-500 rounded-full animate-ping"></span>
-                                <p className="text-[10px] uppercase tracking-widest text-ls-gold font-bold">Live Ops 7.0 - Real Proto</p>
-                            </div>
-                        </div>
+                    {/* MAIN (Simulación de la vista Acreditación + Locutor) */}
+                    <main className="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-8 w-full pb-20 md:pb-8">
                         
-                        <nav className="flex-1 py-6 space-y-1 px-3 mt-14 md:mt-0 overflow-y-auto scroll-hide">
-                            <p className="px-4 text-[10px] font-bold text-gray-500 uppercase mb-2 mt-2">Centro de Mando</p>
-                            <MenuBtn icon="Map" label="Mapa Táctico" active={vista==='dashboard'} onClick={()=>navegar('dashboard')} />
-                            <MenuBtn icon="CalendarDays" label="Agenda & Hitos" active={vista==='secretaria'} onClick={()=>navegar('secretaria')} />
-                            
-                            <p className="px-4 text-[10px] font-bold text-gray-500 uppercase mb-2 mt-4">Operación</p>
-                            <MenuBtn icon="Award" label="Protocolo Live" active={vista==='protocolo'} onClick={()=>navegar('protocolo')} />
-                            <MenuBtn icon="RadioReceiver" label="Técnica Live" active={vista==='tecnico'} onClick={()=>navegar('tecnico')} />
-                            <MenuBtn icon="Newspaper" label="Prensa Hub" active={vista==='prensa'} onClick={()=>navegar('prensa')} />
-                        </nav>
-
-                        <div className="p-4 bg-gray-900/50 text-xs text-gray-400 border-t border-gray-800">
-                            <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-ls-gold text-white flex items-center justify-center font-bold">RG</div>
-                                <div>
-                                    <p className="font-bold text-white">Rodrigo Godoy</p>
-                                    <p className="scale-90 origin-left text-green-400 flex items-center gap-1">● Conectado</p>
-                                </div>
-                            </div>
-                        </div>
-                    </aside>
-
-                    {/* OVERLAY */}
-                    {menuOpen && <div className="fixed inset-0 bg-black/50 z-30 md:hidden" onClick={() => setMenuOpen(false)}></div>}
-
-                    {/* MAIN */}
-                    <main className="flex-1 overflow-y-auto bg-slate-50 p-4 md:p-8 w-full">
+                        {/* HEADER PRINCIPAL */}
                         <header className="flex justify-between items-center mb-6 border-b border-gray-200 pb-4">
                             <h2 className="text-xl md:text-3xl font-black text-ls-stone uppercase tracking-tight flex items-center gap-3">
-                                <i data-lucide={obtenerIcono(vista)} className="text-ls-red hidden md:block"></i>
-                                {obtenerTitulo(vista)}
+                                <i data-lucide="award" className="text-ls-red hidden md:block"></i>
+                                Control Protocolar Real (Live Ops 2026)
                             </h2>
                             <div className="hidden md:block text-right">
                                 <p className="text-sm font-bold text-ls-stone bg-white px-3 py-1 rounded-full shadow-sm border border-gray-200">
-                                    {new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })}
+                                    Base DB: {autoridades.length > 0 ? `${autoridades.length} Autoridades` : 'Cargando...'}
                                 </p>
                             </div>
                         </header>
 
-                        <div className="animate-fade-in pb-20 md:pb-0 max-w-7xl mx-auto">
-                            {vista === 'dashboard' && <Dashboard eventos={eventos} autoridades={autoridades} moviles={moviles} />}
-                            {vista === 'secretaria' && <Secretaria onGuardar={(e) => setEventos([...eventos, e])} />}
-                            {vista === 'protocolo' && <Protocolo lista={autoridades} setLista={setAutoridades} />}
-                            {vista === 'tecnico' && <Tecnico eventos={eventos} />}
-                            {vista === 'prensa' && <Prensa eventos={eventos} />}
+                        {/* DISEÑO DUAL: Acreditación + Locutor */}
+                        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+                            
+                            {/* PANEL IZQUIERDO: Acreditación / Check-in */}
+                            <div className="xl:col-span-2 space-y-4 bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
+                                <div className="flex justify-between items-center mb-4">
+                                    <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2"><i data-lucide="UserCheck" className="text-ls-red"></i>Acreditación Puerta (ProtoGate 2026)</h3>
+                                </div>
+                                
+                                {/* BARRA DE BÚSQUEDA TÁCTICA PARA LISTA LARGA */}
+                                <div className="relative mb-6">
+                                    <i data-lucide="Search" className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size="20"></i>
+                                    <input 
+                                        type="search" 
+                                        placeholder="Buscar por nombre o cargo (Ej: Alcaldesa, Krist, Concejal...)" 
+                                        value={terminoBusqueda}
+                                        onChange={e => setTerminoBusqueda(e.target.value)}
+                                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border border-gray-200 rounded-xl outline-none transition focus:border-ls-red focus:ring-2 focus:ring-ls-red/10 text-base"
+                                    />
+                                </div>
+
+                                {/* LISTA DE ACREDITACIÓN (Reactiva y Filtrada) */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4 h-[600px] overflow-y-auto pr-3 scroll-hide border-t border-gray-100 pt-4">
+                                    {autoridadesFiltradas.length > 0 ? autoridadesFiltradas.map(vip => (
+                                        <div key={vip.id} onClick={() => {
+                                            // Toggle estado presente/pendiente
+                                            setAutoridades(autoridades.map(a => a.id === vip.id ? { ...a, presente: !a.presente } : a));
+                                            console.log(`ProtoGate: VIP ${vip.nombre} toggle.`);
+                                        }} className={`cursor-pointer p-4 rounded-xl border flex justify-between items-center bg-white transition-all active:scale-[0.98] ${vip.presente ? 'border-green-500 bg-green-50 ring-2 ring-green-200' : 'border-gray-200 hover:border-gray-300 hover:shadow'}`}>
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border-2 ${vip.presente ? 'bg-green-600 text-white border-green-700' : 'bg-gray-100 text-gray-400 border-gray-200'}`}>
+                                                    {vip.nombre.charAt(0)}
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-bold text-gray-800 text-sm leading-tight flex items-center gap-1">
+                                                        {vip.nombre}
+                                                        <span className="text-[9px] font-mono font-normal text-gray-400 bg-gray-100 px-1 rounded">Rango {vip.rango}</span>
+                                                    </h4>
+                                                    <p className="text-[10px] font-bold text-ls-red uppercase tracking-wide">{vip.cargo}</p>
+                                                    <p className="text-[9px] text-gray-400 italic">"LIGA: {vip.categoria}"</p>
+                                                </div>
+                                            </div>
+                                            <div className={`p-2 rounded-full border ${vip.presente ? 'bg-green-100 text-green-600 border-green-200' : 'bg-gray-50 text-gray-300 border-gray-100'}`}>
+                                                <i data-lucide={vip.presente ? 'Check' : 'Plus'} size="20"></i>
+                                            </div>
+                                        </div>
+                                    )) : (
+                                        <div className="md:col-span-2 text-center p-10 border-2 border-dashed border-gray-200 rounded-xl text-gray-400 flex flex-col items-center gap-3">
+                                            <i data-lucide="SearchX" size="48"></i>
+                                            <p>No se encontraron autoridades con "{terminoBusqueda}".</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* PANEL DERECHO: Pestaña del Locutor (Mismo estilo Reactivo y Estilizado) */}
+                            <div className="xl:col-span-1">
+                                <VistaLocutor autoridades={autoridades} />
+                            </div>
                         </div>
                     </main>
                 </div>
             );
         }
 
-        // --- MÓDULOS ---
-
-        // 1. DASHBOARD TÁCTICO (MAPA EN VIVO) - SIN CAMBIOS
-        function Dashboard({ eventos, autoridades, moviles }) {
-            const mapRef = useRef(null);
-            useEffect(() => {
-                if(document.getElementById('mapa-global') && !mapRef.current) {
-                    const map = L.map('mapa-global').setView([-29.9045, -71.2550], 14);
-                    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-                        attribution: '&copy; OpenStreetMap &copy; CARTO'
-                    }).addTo(map);
-                    mapRef.current = map;
-                }
-            }, []);
-
-            useEffect(() => {
-                const map = mapRef.current;
-                if (!map) return;
-                map.eachLayer((layer) => { if (layer instanceof L.Marker) { map.removeLayer(layer); } });
-                eventos.forEach(ev => {
-                    if(ev.coords) {
-                        const pulseIcon = L.divIcon({ className: 'custom-div-icon', html: `<div class='pulse-icon'></div>`, iconSize: [20, 20], iconAnchor: [10, 10] });
-                        L.marker(ev.coords, { icon: pulseIcon }).addTo(map).bindPopup(`<b>${ev.nombre}</b><br>EN CURSO`);
-                    }
-                });
-                moviles.forEach(mov => {
-                    let emoji = '🚓'; let cssClass = 'movil-icon';
-                    if (mov.tipo === 'produccion') { emoji = '🚚'; cssClass += ' movil-prod'; }
-                    if (mov.tipo === 'oficial') { emoji = '🚙'; }
-                    const carIcon = L.divIcon({ className: 'custom-div-icon', html: `<div class='${cssClass}'>${emoji}</div>`, iconSize: [30, 30], iconAnchor: [15, 15] });
-                    L.marker([mov.lat, mov.lng], { icon: carIcon }).addTo(map).bindPopup(`<b>${mov.nombre}</b><br>GPS Activo`);
-                });
-            }, [eventos, moviles]);
-            
-            const presentes = autoridades.filter(a => a.estado === 'presente').length;
-            return (
-                <div className="space-y-6">
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        <StatCard label="Eventos Activos" val={eventos.length} icon="Radio" color="bg-red-600 animate-pulse" />
-                        <StatCard label="Unidades en Terreno" val={moviles.length} icon="Car" color="bg-blue-600" />
-                        <StatCard label="VIP en Sala" val={`${presentes}/${autoridades.length}`} icon="Users" color="bg-ls-stone" />
-                        <StatCard label="Alertas" val="0" icon="CheckCircle" color="bg-green-600 hidden md:block" />
-                    </div>
-                    <div className="bg-white p-1 rounded-2xl shadow-lg border border-gray-200 relative">
-                        <div id="mapa-global" className="map-container rounded-xl h-[400px]"></div>
-                        <div className="absolute bottom-4 right-4 bg-white/90 p-3 rounded-lg shadow-md text-xs z-[500] border border-gray-200">
-                            <p className="font-bold mb-1">Simbología</p>
-                            <div className="flex items-center gap-2 mb-1"><span className="w-3 h-3 rounded-full bg-red-500 border-2 border-white shadow"></span> Evento Activo</div>
-                            <div className="flex items-center gap-2 mb-1">🚓 Seguridad</div>
-                            <div className="flex items-center gap-2">🚚 Producción</div>
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-
-        // 2. SECRETARÍA - SIN CAMBIOS
-        function Secretaria({ onGuardar }) {
-            const [form, setForm] = useState({ nombre: '', fecha: '', lugar: 'Ed. Consistorial' });
-            const guardar = (e) => {
-                e.preventDefault();
-                const coords = UBICACIONES[form.lugar] || UBICACIONES["Ed. Consistorial"];
-                onGuardar({ ...form, id: Date.now(), coords });
-                alert("Evento Sincronizado");
-                setForm({ nombre: '', fecha: '', lugar: 'Ed. Consistorial' });
-            };
-            return (
-                <div className="bg-white p-8 rounded-2xl shadow-lg border border-gray-100 max-w-2xl mx-auto">
-                    <h3 className="text-xl font-bold mb-6 text-gray-800 flex items-center gap-2"><i data-lucide="CalendarPlus" className="text-ls-red"></i>Nuevo Hito Protocolar</h3>
-                    <form onSubmit={guardar} className="space-y-4">
-                        <div><label className="label">Nombre Evento</label><input required className="input" placeholder="Ej: Cuenta Pública 2026" value={form.nombre} onChange={e=>setForm({...form, nombre: e.target.value})} /></div>
-                        <div className="grid md:grid-cols-2 gap-4">
-                            <div><label className="label">Fecha Inicio</label><input required type="datetime-local" className="input" value={form.fecha} onChange={e=>setForm({...form, fecha: e.target.value})} /></div>
-                            <div><label className="label">Lugar</label><select className="input" value={form.lugar} onChange={e=>setForm({...form, lugar: e.target.value})}>{Object.keys(UBICACIONES).map(u => <option key={u} value={u}>{u}</option>)}</select></div>
-                        </div>
-                        <button className="btn-primary w-full py-4 text-lg shadow-lg shadow-blue-900/20 flex items-center justify-center gap-2 mt-6"><i data-lucide="DatabaseZap"></i>Sincronizar Hito Live</button>
-                    </form>
-                </div>
-            );
-        }
-
-        // 3. PROTOCOLO VIP -> AHORA INCLUYE LA VISTA DEL LOCUTOR REACTIVA Y ESTILIZADA
-        function Protocolo({ lista, setLista }) {
-            const [filtro, setFiltro] = useState('Todos');
-            const categorias = ['Todos', 'Regional', 'Municipal', 'Parlamentario', 'Concejo'];
-            const filteredList = filtro === 'Todos' ? lista : lista.filter(a => a.categoria === filtro);
-            
-            // Función de Check-in (Técnica de Puerta)
-            const checkIn = (id) => {
-                setLista(lista.map(a => a.id === id ? { ...a, estado: a.estado === 'pendiente' ? 'presente' : 'pendiente' } : a));
-                console.log(`ProtoGate: VIP ${id} estado toggle.`);
-            }
-
-            return (
-                <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                    
-                    {/* COLUMNA 1 y 2: Acreditación de Autoridades (Panel Izquierdo) */}
-                    <div className="xl:col-span-2 space-y-4 bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
-                        <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-lg font-bold text-gray-800 flex items-center gap-2"><i data-lucide="UserCheck" className="text-ls-red"></i>Acreditación Puerta (ProtoGate)</h3>
-                            <div className="text-xs text-gray-500 font-mono bg-slate-100 px-3 py-1 rounded-full border">Daniela Norambuena (Alcaldesa) cargada</div>
-                        </div>
-                        <div className="flex gap-2 overflow-x-auto pb-2 scroll-hide border-b border-gray-100">
-                            {categorias.map(cat => (
-                                <button key={cat} onClick={() => setFiltro(cat)} 
-                                    className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${filtro === cat ? 'bg-ls-stone text-white' : 'bg-slate-100 text-gray-500 border border-gray-200 hover:bg-slate-200'}`}>
-                                    {cat}
-                                </button>
-                            ))}
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-4">
-                            {filteredList.map(vip => (
-                                <div key={vip.id} onClick={() => checkIn(vip.id)} className={`cursor-pointer p-4 rounded-xl border flex justify-between items-center bg-white transition-all active:scale-[0.98] ${vip.estado === 'presente' ? 'border-green-500 bg-green-50 ring-2 ring-green-200' : 'border-gray-200 hover:border-gray-300 hover:shadow'}`}>
-                                    <div className="flex items-center gap-3">
-                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm border-2 ${vip.estado === 'presente' ? 'bg-green-600 text-white border-green-700' : 'bg-gray-100 text-gray-400 border-gray-200'}`}>
-                                            {vip.nombre.charAt(0)}
-                                        </div>
-                                        <div>
-                                            <h4 className="font-bold text-gray-800 text-sm leading-tight flex items-center gap-1">
-                                                {vip.nombre}
-                                                <span className="text-[9px] font-mono font-normal text-gray-400 bg-gray-100 px-1 rounded">Preced: {vip.precedencia}</span>
-                                            </h4>
-                                            <p className="text-[10px] font-bold text-ls-red uppercase tracking-wide">{vip.cargo}</p>
-                                        </div>
-                                    </div>
-                                    <div className={`p-2 rounded-full border ${vip.estado === 'presente' ? 'bg-green-100 text-green-600 border-green-200' : 'bg-gray-50 text-gray-300 border-gray-100'}`}>
-                                        <i data-lucide={vip.estado === 'presente' ? 'Check' : 'Plus'} size="20"></i>
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* COLUMNA 3: Pestaña del Locutor (Panel Derecho ESTILIZADO como image_1.png) */}
-                    <div className="xl:col-span-1">
-                        <VistaLocutor autoridades={lista} />
-                    </div>
-                </div>
-            );
-        }
-
-        // NUEVO COMPONENTE: VISTA DEL LOCUTOR (Dark Mode, Alto Contraste, Lógica de Precedencia Real)
+        // COMPONENTE: VISTA DEL LOCUTOR (Recibe la lista larga dinámica)
         function VistaLocutor({ autoridades }) {
-            // Lógica Central Integrada en React: Filtrar, Ordenar por Precedencia y Generar Texto
+            
+            // Lógica Central: Filtrar presentes, Ordenar por Rango Oficial y Generar Texto
             const vocativosDinamicos = useMemo(() => {
                 // 1. Filtrar presentes
-                const presentes = autoridades.filter(a => a.estado === 'presente');
+                const presentes = autoridades.filter(a => a.presente);
 
-                // 2. Ordenar por Rango Oficial (Número menor primero)
-                // Daniela Norambuena es Rango 3. Si llega Cristóbal Juliá (Rango 1), él preside.
-                presentes.sort((a, b) => a.precedencia - b.precedencia);
+                // 2. Ordenar por Rango (Precedencia Oficial) - Número menor primero
+                presentes.sort((a, b) => a.rango - b.rango);
 
                 // 3. Generar Texto Dinámico
                 if (presentes.length === 0) {
                     return [{ texto: "Esperando acreditación de autoridades...", tipo: "alerta" }];
                 }
 
-                return presentes.map((autoridad, index) => {
-                    const prefijo = (index === 0) 
-                        ? `Saludamos a quien preside este acto, ` 
-                        : `Saludamos también a `;
-                    
-                    return {
-                        texto: `${prefijo}${autoridad.vocativo}, ${autoridad.cargo}, ${autoridad.nombre}.`,
-                        tipo: "normal"
-                    };
-                });
+                // Definimos el vocativo para quien preside
+                const textoPreside = `${presentes[0].vocativo}, ${presentes[0].cargo}, ${presentes[0].nombre}.`;
 
-            }, [autoridades]); // Se recalcula cada vez que 'autoridades' cambia (check-in/out)
+                let parrafos = [];
+                parrafos.push({ texto: `Saludamos a quien preside este acto, ` + textoPreside, tipo: "preside" });
+
+                // Si hay más, saludamos al resto
+                if (presentes.length > 1) {
+                    parrafos.push({ texto: `Saludamos también a las siguientes autoridades presentes, ordenadas por estricto protocolo real:`, tipo: "normal" });
+                    
+                    // Mostramos el resto
+                    const resto = presentes.slice(1);
+                    resto.forEach(vip => {
+                        parrafos.push({ texto: `● ${vip.vocativo}, ${vip.cargo}, ${vip.nombre}.`, tipo: "lista" });
+                    });
+                }
+                
+                return parrafos;
+
+            }, [autoridades]); // Se recalcula cada vez que 'autoridades' cambia
 
             return (
                 <div className="bg-black text-white p-6 rounded-2xl shadow-2xl border-4 border-ls-gold-light min-h-[400px] sticky top-8">
                     <div className="flex justify-between items-center mb-6 border-b border-gray-800 pb-3">
                         <h3 className="text-xl font-black text-ls-gold-light uppercase tracking-tighter flex items-center gap-2">
                             <i data-lucide="Mic" className="text-ls-gold-light"></i>
-                            Pestaña Locutor (Real Live)
+                            Pestaña Locutor
                         </h3>
-                        <span className="w-3 h-3 bg-red-600 rounded-full animate-pulse border border-white"></span>
+                        <span className="text-xs text-ls-gold-light font-bold bg-ls-stone px-3 py-1 rounded-full border border-ls-stone/50">{autoridades.filter(a => a.presente).length} Presentes</span>
                     </div>
                     
                     {/* EL TEXTO QUE LEE EL LOCUTOR -> REACTIVO Y ESTILIZADO */}
-                    <div className="font-mono text-base leading-relaxed space-y-5">
+                    <div className="font-mono text-base leading-relaxed space-y-4">
                         {vocativosDinamicos.map((item, index) => (
-                            <p key={index} className={item.tipo === "alerta" ? "text-red-400 italic animate-fade-in" : "text-white animate-fade-in"}>
+                            <p key={index} className={item.tipo === "alerta" ? "text-red-400 italic animate-fade-in" : item.tipo === "preside" ? "text-white text-lg font-black animate-fade-in border-b border-gray-800 pb-3 mb-3" : "text-white animate-fade-in text-sm"}>
                                 {/* Resaltar partes clave del vocativo en amarillo brillante */}
-                                {item.texto.split(/(\bs[ra]\.\s\w+|\b\w+\sde\s\w+)/gi).map((part, i) => {
-                                    if(part.match(/^[ra]\.\s\w+/i) || part.match(/\b\w+\sde\s\w+/i)) {
+                                {item.texto.split(/([rs][\.\s]\s[\wáéíóúÁÉÍÓÚñÑ]+|Alcaldesa|[\wáéíóúÁÉÍÓÚñÑ]+\sde\s[\wáéíóúÁÉÍÓÚñÑ]+|Daniela Norambuena)/gi).map((part, i) => {
+                                    if(part.match(/^[rs][\.\s]\s[\wáéíóúÁÉÍÓÚñÑ]+/i) || part.match(/Alcaldesa/i) || part.match(/Daniela Norambuena/i) || part.match(/[\wáéíóúÁÉÍÓÚñÑ]+\sde\s[\wáéíóúÁÉÍÓÚñÑ]+/i)) {
                                         return <strong key={i} className="text-ls-gold-light font-black">{part}</strong>;
                                     }
                                     return part;
@@ -385,113 +235,11 @@
                     </div>
 
                     <div className="absolute bottom-4 right-4 text-[9px] text-gray-600 font-mono">
-                        Powered by S.E.R.E.N.I.T.O. Logic v7.0
+                        Powered by S.E.R.E.N.I.T.O. Logic v7.0 (Rango Dinámico)
                     </div>
                 </div>
             );
         }
-
-        // 4. TÉCNICA LIVE - SIN CAMBIOS
-        function Tecnico({ eventos }) {
-            return (
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {eventos.map(ev => <CronometroCard key={ev.id} evento={ev} />)}
-                    {eventos.length === 0 && <div className="text-center p-10 border-2 border-dashed border-gray-300 rounded-xl text-gray-400 lg:col-span-2">Sin eventos activos en Hitos</div>}
-                </div>
-            );
-        }
-
-        const CronometroCard = ({ evento }) => {
-            const [timeLeft, setTimeLeft] = useState("");
-            const [status, setStatus] = useState("pending");
-            useEffect(() => {
-                const interval = setInterval(() => {
-                    const diff = new Date(evento.fecha) - new Date();
-                    if (diff < 0) { setTimeLeft("AL AIRE (Live)"); setStatus("running"); clearInterval(interval); } 
-                    else {
-                        const d = Math.floor(diff / (1000 * 60 * 60 * 24)); const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)); const s = Math.floor((diff % (1000 * 60)) / 1000);
-                        setTimeLeft(`${d}d ${h}h ${m}m ${s}s`); setStatus("pending");
-                    }
-                }, 1000);
-                return () => clearInterval(interval);
-            }, [evento]);
-            return (
-                <div className="bg-ls-stone text-white rounded-2xl p-6 shadow-2xl border-t-4 border-ls-red relative overflow-hidden transition-all hover:shadow-ls-red/20 hover:border-ls-gold">
-                    <div className="flex justify-between mb-4 border-b border-gray-700 pb-3">
-                        <span className={`text-[10px] font-bold px-3 py-1 rounded-full flex items-center gap-1 ${status === 'running' ? 'bg-ls-red animate-pulse' : 'bg-blue-600'}`}>
-                            <i data-lucide={status === 'running' ? 'Wifi' : 'Clock4'} size="12"></i>{status === 'running' ? '● LIVE Ops' : 'PRÓXIMO'}
-                        </span>
-                        <span className="text-xs font-mono text-gray-400">{new Date(evento.fecha).toLocaleDateString('es-CL', {day:'2-digit', month:'2-digit'})} | {new Date(evento.fecha).toLocaleTimeString('es-CL', {hour:'2-digit', minute:'2-digit'})}</span>
-                    </div>
-                    <h3 className="text-2xl font-black leading-none mb-1 tracking-tight">{evento.nombre}</h3>
-                    <p className="text-xs text-gray-400 mb-8 flex items-center gap-1"><i data-lucide="MapPin" size="12"></i> {evento.lugar}</p>
-                    <div className="bg-black/40 rounded-xl p-5 text-center border border-white/5 backdrop-blur-sm shadow-inner">
-                        <span className="text-4xl md:text-5xl font-mono font-black text-ls-gold-light tracking-tight">{timeLeft}</span>
-                        <p className="text-[9px] uppercase tracking-[0.4em] text-gray-500 mt-2">Cuenta Regresiva Operacional</p>
-                    </div>
-                </div>
-            )
-        }
-
-        // 5. PRENSA - SIN CAMBIOS
-        function Prensa({ eventos }) {
-            const [selected, setSelected] = useState(eventos[0]);
-            if(eventos.length === 0) return <div className="text-center p-10 border-2 border-dashed border-gray-300 rounded-xl text-gray-400">Sin eventos disponibles</div>
-            return (
-                <div className="flex flex-col md:flex-row h-[600px] bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
-                    <div className="w-full md:w-1/3 bg-gray-50 border-r border-gray-200 p-4 overflow-y-auto scroll-hide">
-                        <h3 className="text-xs font-bold text-gray-400 uppercase mb-3 px-2">Hitos Disponibles</h3>
-                        <div className="space-y-2">
-                            {eventos.map(ev => (
-                                <button key={ev.id} onClick={() => setSelected(ev)} className={`w-full text-left p-3 rounded-lg text-sm transition-all flex justify-between items-center ${selected?.id === ev.id ? 'bg-ls-stone text-white shadow-lg' : 'hover:bg-gray-100 text-gray-700'}`}>
-                                    <div>
-                                        <span className="font-bold block">{ev.nombre}</span>
-                                        <span className="text-xs opacity-70">{new Date(ev.fecha).toLocaleDateString()}</span>
-                                    </div>
-                                    {selected?.id === ev.id && <i data-lucide="ChevronRight" size="16"></i>}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                    <div className="w-full md:w-2/3 p-6 overflow-y-auto space-y-6">
-                        <div className="flex justify-between items-center mb-6 border-b border-gray-100 pb-4">
-                            <h2 className="text-2xl font-black text-gray-800 tracking-tight">{selected?.nombre}</h2>
-                            <button className="bg-ls-red text-white px-5 py-2.5 rounded-lg text-xs font-bold flex items-center gap-2 hover:bg-red-800 transition shadow-md shadow-red-900/10">
-                                <i data-lucide="UploadCloud"></i>Subir Material Hub
-                            </button>
-                        </div>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                            {[1,2,3,4,5,6,7,8,9].map(i => (
-                                <div key={i} className="aspect-video bg-gray-100 rounded-lg border border-gray-200 flex items-center justify-center cursor-pointer hover:bg-gray-200 transition group relative overflow-hidden">
-                                    <i data-lucide="Image" className="text-gray-300 transition-colors group-hover:text-ls-gold" size="32"></i>
-                                    <span className="absolute bottom-1 right-1 text-[8px] text-gray-400 bg-white/80 px-1 rounded">REF_{i}.JPG</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                </div>
-            )
-        }
-
-        // UTILS - SIN CAMBIOS
-        const MenuBtn = ({ icon, label, active, onClick }) => (
-            <button onClick={onClick} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl mb-1 transition-all ${active ? 'bg-ls-red text-white shadow-lg ring-2 ring-ls-red/20' : 'text-gray-400 hover:bg-ls-stone/50 hover:text-white'}`}>
-                <i data-lucide={icon} size="20"></i>
-                <span className="text-sm font-semibold">{label}</span>
-            </button>
-        );
-
-        const StatCard = ({ label, val, icon, color }) => (
-            <div className={`${color} text-white p-5 rounded-xl shadow-md relative overflow-hidden ring-4 ring-white/10`}>
-                <p className="text-[10px] uppercase opacity-80 font-bold tracking-wider">{label}</p>
-                <p className="text-3xl font-black mt-1 tracking-tight">{val}</p>
-                <div className="absolute right-2 bottom-2 opacity-20"><i data-lucide={icon} size="40"></i></div>
-            </div>
-        );
-
-        const obtenerTitulo = (v) => ({ dashboard: 'Inteligencia Táctica', secretaria: 'Gestión de Hitos Live', protocolo: 'Protocolo VIP Live', tecnico: 'Control Técnico Live Ops', prensa: 'Prensa & Media Hub' }[v]);
-        const obtenerIcono = (v) => ({ dashboard: 'Map', secretaria: 'CalendarPlus', protocolo: 'Award', tecnico: 'Cpu', prensa: 'Share2' }[v]);
 
         const root = ReactDOM.createRoot(document.getElementById('root'));
         root.render(<SerenitoApp />);
