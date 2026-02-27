@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Mic2, Camera, Calendar, Play, Pause, CheckCircle, AlertTriangle, Menu, MapPin, FileText } from 'lucide-react';
+import { Users, Mic2, Camera, Calendar, Play, Pause, CheckCircle, AlertTriangle, MapPin } from 'lucide-react';
 
 // --- DATOS INICIALES (Simulando Base de Datos) ---
 const VIPS_INICIALES = [
