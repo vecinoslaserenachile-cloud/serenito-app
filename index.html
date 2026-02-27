@@ -47,7 +47,7 @@
     <script type="text/babel">
         const { useState, useEffect, useRef, useMemo } = React;
 
-        // DATOS INICIALES MULTI-EVENTO (4 Fichas)
+        // DATOS INICIALES (4 FICHAS)
         const EVENTOS_INICIALES = [
             { 
                 id: 1, nombre: "Inauguración Plaza de Armas", fecha: "2026-04-28T11:00", lugar: "Plaza de Armas", 
@@ -62,7 +62,12 @@
                     { id: 7, tarea: "Sistema de Amplificación Line Array", listo: false },
                     { id: 8, tarea: "Generador Eléctrico de Respaldo", listo: false },
                     { id: 9, tarea: "Agua Mineral para Autoridades", listo: false },
-                    { id: 10, tarea: "Atril para Locutor", listo: true }
+                    { id: 10, tarea: "Atril para Locutor", listo: true },
+                    { id: 11, tarea: "Música de Fondo y Himno Nacional", listo: false },
+                    { id: 12, tarea: "Fotógrafo Oficial Confirmado", listo: false },
+                    { id: 13, tarea: "Dispositivos de Seguridad (Vallas)", listo: false },
+                    { id: 14, tarea: "Limpieza Previa del Recinto", listo: true },
+                    { id: 15, tarea: "Personal de Protocolo en Puntos", listo: false }
                 ]
             },
             { 
@@ -74,18 +79,21 @@
                     { id: 3, tarea: "Transmisión Streaming Youtube", listo: false },
                     { id: 4, tarea: "Libretos Impresos (3 Copias)", listo: false },
                     { id: 5, tarea: "Video Resumen Gestión", listo: true },
-                    { id: 6, tarea: "Cóctel de Cierre", listo: false }
+                    { id: 6, tarea: "Cóctel de Cierre", listo: false },
+                    { id: 7, tarea: "Guardarropía Habilitada", listo: false },
+                    { id: 8, tarea: "Confirmación Asistencia Concejo", listo: false }
                 ]
             },
             { 
-                id: 3, nombre: "Desfile Glorias Navales", fecha: "2026-05-21T10:00", lugar: "Av. del Mar", 
+                id: 3, nombre: "Desfile Escolar Glorias Navales", fecha: "2026-05-21T10:00", lugar: "Av. del Mar", 
                 direccion: "Faro Monumental", coords: [-29.9045, -71.2755], estado: "Planificación", responsable: "Depto. Educación", 
                 checklist: [
                     { id: 1, tarea: "Cierre de Calles (Carabineros)", listo: false },
                     { id: 2, tarea: "Palco de Autoridades (Techado)", listo: false },
                     { id: 3, tarea: "Vallas Papales", listo: false },
                     { id: 4, tarea: "Banda Instrumental", listo: true },
-                    { id: 5, tarea: "Punto de Hidratación Alumnos", listo: false }
+                    { id: 5, tarea: "Punto de Hidratación Alumnos", listo: false },
+                    { id: 6, tarea: "Ambulancia en Terreno", listo: false }
                 ]
             },
             { 
@@ -95,7 +103,8 @@
                     { id: 1, tarea: "Escenario Principal 20x15m", listo: false },
                     { id: 2, tarea: "Camerinos Artistas", listo: false },
                     { id: 3, tarea: "Seguridad Privada (50 Guardias)", listo: false },
-                    { id: 4, tarea: "Corte de Ticket / Accesos", listo: false }
+                    { id: 4, tarea: "Corte de Ticket / Accesos", listo: false },
+                    { id: 5, tarea: "Prueba de Sonido", listo: false }
                 ]
             }
         ];
@@ -109,24 +118,23 @@
             const [errorCarga, setErrorCarga] = useState(null);
 
             useEffect(() => {
-                const stored = localStorage.getItem('serenito_db_v20');
+                const stored = localStorage.getItem('serenito_db_v21');
                 if(stored) {
                     setAutoridades(JSON.parse(stored));
                 } else {
-                    // ?v=timestamp evita caché
                     fetch(`autoridades_coquimbo_2026.json?v=${Date.now()}`)
                         .then(res => res.ok ? res.json() : Promise.reject("Error JSON"))
                         .then(data => {
                             const sorted = data.sort((a, b) => a.precedencia - b.precedencia);
                             setAutoridades(sorted);
-                            localStorage.setItem('serenito_db_v20', JSON.stringify(sorted));
+                            localStorage.setItem('serenito_db_v21', JSON.stringify(sorted));
                         })
-                        .catch(err => setErrorCarga("⚠️ Cargando datos de respaldo..."));
+                        .catch(err => setErrorCarga("⚠️ Error cargando DB."));
                 }
             }, []);
 
             useEffect(() => {
-                if(autoridades.length > 0) localStorage.setItem('serenito_db_v20', JSON.stringify(autoridades));
+                if(autoridades.length > 0) localStorage.setItem('serenito_db_v21', JSON.stringify(autoridades));
             }, [autoridades]);
 
             const navegar = (v) => { setVista(v); setMenuOpen(false); }
@@ -170,6 +178,7 @@
                         <div className="flex-1 flex flex-col pb-16 h-full">
                             {errorCarga && <div className="bg-red-100 text-red-700 p-3 rounded-lg mb-4 text-sm border border-red-200">{errorCarga}</div>}
                             
+                            {/* RENDERIZADO DE VISTAS */}
                             {vista === 'dashboard' && <Dashboard eventos={eventos} />}
                             {vista === 'secretaria' && <Secretaria onGuardar={(nuevo) => setEventos([...eventos, nuevo])} />}
                             {vista === 'protocolo' && <Protocolo autoridades={autoridades} setAutoridades={setAutoridades} />}
@@ -178,13 +187,117 @@
                             {vista === 'admin' && <AdminView autoridades={autoridades} setAutoridades={setAutoridades} />}
                         </div>
                         
+                        {/* WINCHA LIVE */}
                         <Wincha autoridades={autoridades} eventos={eventos} />
                     </main>
                 </div>
             );
         }
 
-        // --- 1. DASHBOARD ---
+        // --- TÉCNICA (REPARADA: SELECCIÓN POR ID) ---
+        function Tecnica({ eventos, setEventos }) {
+            // Usamos el ID del primer evento si existe, para asegurar que siempre haya uno seleccionado al inicio
+            const [selId, setSelId] = useState(eventos.length > 0 ? eventos[0].id : null);
+            
+            // Encontramos el evento completo usando el ID
+            const sel = eventos.find(e => e.id === selId);
+
+            // Función segura para cambiar evento SIN RECARGAR
+            const cambiarEvento = (e, id) => {
+                e.preventDefault(); 
+                e.stopPropagation();
+                setSelId(id);
+            };
+
+            const toggle = (taskId) => {
+                if(!sel) return;
+                const nuevoCheck = sel.checklist.map(t => t.id === taskId ? { ...t, listo: !t.listo } : t);
+                const eventoActualizado = { ...sel, checklist: nuevoCheck };
+                
+                // Actualizamos el array maestro manteniendo el orden
+                setEventos(eventos.map(ev => ev.id === sel.id ? eventoActualizado : ev));
+            }
+
+            const agregarManual = (e) => {
+                e.preventDefault();
+                if(!sel) return;
+                const texto = prompt("Nombre variable:");
+                if(texto) {
+                    const actualizado = { ...sel, checklist: [...sel.checklist, { id: Date.now(), tarea: texto, listo: false }] };
+                    setEventos(eventos.map(ev => ev.id === sel.id ? actualizado : ev));
+                }
+            }
+
+            // Cálculo Estadísticas
+            const total = sel ? sel.checklist.length : 0;
+            const listos = sel ? sel.checklist.filter(t=>t.listo).length : 0;
+            const porcentaje = total > 0 ? (listos/total)*100 : 0;
+            const terminado = total > 0 && listos === total;
+
+            if(!sel) return <div className="flex h-full items-center justify-center text-gray-400 font-bold">Sin eventos activos.</div>;
+
+            return (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
+                    {/* Lista Lateral de Eventos */}
+                    <div className="lg:col-span-1 space-y-3 overflow-y-auto pr-2 border-r border-gray-200">
+                        <h2 className="font-black text-lg text-ls-red mb-4 flex items-center gap-2"><i data-lucide="List"></i> Fichas Activas</h2>
+                        {eventos.map((ev) => {
+                            const t = ev.checklist.length;
+                            const l = ev.checklist.filter(x=>x.listo).length;
+                            return (
+                                <button type="button" key={ev.id} onClick={(e) => cambiarEvento(e, ev.id)} 
+                                    className={`w-full text-left p-4 rounded-xl border transition-all ${selId === ev.id ? 'bg-ls-red text-white shadow-lg scale-105' : 'bg-white hover:bg-gray-50 border-gray-200 text-gray-600'}`}>
+                                    <div className="flex justify-between items-start">
+                                        <h3 className="font-bold text-sm mb-1">{ev.nombre}</h3>
+                                        {l===t && t>0 && <i data-lucide="CheckCircle" className="text-white fill-green-500" size={16}></i>}
+                                    </div>
+                                    <div className="flex justify-between items-center text-[10px] opacity-90 mt-1">
+                                        <span>{ev.responsable}</span>
+                                        <span className={`px-2 py-0.5 rounded font-bold ${selId === ev.id ? 'bg-white/20' : 'bg-gray-100'}`}>{l}/{t}</span>
+                                    </div>
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    {/* Detalle */}
+                    <div className={`lg:col-span-2 bg-white p-6 rounded-2xl shadow-xl border-t-8 flex flex-col h-full overflow-hidden ${terminado ? 'border-green-500' : 'border-ls-yellow'}`}>
+                         <div className="flex justify-between items-start mb-4 border-b border-gray-100 pb-4">
+                             <div className="flex-1">
+                                 <h2 className="font-black text-2xl text-gray-800 flex items-center gap-2">
+                                     {sel.nombre}
+                                     {terminado && <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full border border-green-200 uppercase font-black">¡LISTO!</span>}
+                                 </h2>
+                                 <p className="text-sm text-gray-500 flex items-center gap-2 mt-1"><i data-lucide="MapPin" size={14}></i> {sel.direccion}</p>
+                             </div>
+                             <button type="button" onClick={agregarManual} className="bg-gray-100 p-2 rounded-lg hover:bg-gray-200 text-xs font-bold flex gap-1"><i data-lucide="Plus" size={14}></i> Variable</button>
+                         </div>
+
+                         <div className="mb-6">
+                             <div className="flex justify-between text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">
+                                 <span>Avance Producción</span>
+                                 <span className={terminado ? "text-green-600" : "text-ls-red"}>{listos} de {total} OK</span>
+                             </div>
+                             <div className="w-full bg-gray-100 rounded-full h-4 shadow-inner overflow-hidden">
+                                 <div className={`h-4 rounded-full progress-bar shadow-sm ${terminado ? 'bg-green-500' : 'bg-ls-yellow'}`} style={{width: `${porcentaje}%`}}></div>
+                             </div>
+                         </div>
+                         
+                         <div className="space-y-2 flex-1 overflow-y-auto pr-2">
+                            {sel.checklist.map(t => (
+                                <button type="button" key={t.id} onClick={() => toggle(t.id)} 
+                                    className={`w-full p-4 rounded-xl border flex justify-between items-center transition-all ${t.listo ? 'bg-green-50 border-green-500 text-green-800 shadow-inner' : 'bg-white border-gray-100 hover:border-gray-300 shadow-sm'}`}>
+                                    <span className={`text-sm font-bold ${t.listo ? 'line-through opacity-60' : 'text-gray-700'}`}>{t.tarea}</span>
+                                    {t.listo ? <i data-lucide="CheckCircle2" className="text-green-600" size={20}></i> : <div className="w-5 h-5 rounded-full border-2 border-gray-300 bg-gray-50"></div>}
+                                </button>
+                            ))}
+                         </div>
+                    </div>
+                </div>
+            )
+        }
+
+        // --- DASHBOARD ---
         function Dashboard({ eventos }) {
             const mapRef = useRef(null);
             useEffect(() => {
@@ -219,107 +332,7 @@
             );
         }
 
-        // --- 2. TÉCNICA (BLINDADA CON SELECCIÓN POR ID) ---
-        function Tecnica({ eventos, setEventos }) {
-            // USAR ID para selección robusta
-            const [selectedId, setSelectedId] = useState(eventos.length > 0 ? eventos[0].id : null);
-            
-            const sel = eventos.find(e => e.id === selectedId);
-
-            const cambiarEvento = (e, id) => {
-                e.preventDefault(); 
-                e.stopPropagation();
-                setSelectedId(id);
-            };
-
-            const toggle = (taskId) => {
-                if(!sel) return;
-                const nuevoCheck = sel.checklist.map(t => t.id === taskId ? { ...t, listo: !t.listo } : t);
-                const actualizado = { ...sel, checklist: nuevoCheck };
-                setEventos(eventos.map(ev => ev.id === sel.id ? actualizado : ev));
-            }
-
-            const agregarManual = (e) => {
-                e.preventDefault();
-                if(!sel) return;
-                const texto = prompt("Nombre variable:");
-                if(texto) {
-                    const actualizado = { ...sel, checklist: [...sel.checklist, { id: Date.now(), tarea: texto, listo: false }] };
-                    setEventos(eventos.map(ev => ev.id === sel.id ? actualizado : ev));
-                }
-            }
-
-            if(!sel) return <div className="flex h-full items-center justify-center text-gray-400 font-bold">Sin eventos activos.</div>;
-
-            // Cálculos del Contador
-            const total = sel.checklist.length;
-            const listos = sel.checklist.filter(t=>t.listo).length;
-            const porcentaje = total > 0 ? (listos/total)*100 : 0;
-            const terminado = total > 0 && listos === total;
-
-            return (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full">
-                    {/* Lista Eventos */}
-                    <div className="lg:col-span-1 space-y-3 overflow-y-auto pr-2 border-r border-gray-200">
-                        <h2 className="font-black text-lg text-ls-red mb-4 flex items-center gap-2"><i data-lucide="List"></i> Fichas Activas</h2>
-                        {eventos.map((ev) => {
-                            const t = ev.checklist.length;
-                            const l = ev.checklist.filter(x=>x.listo).length;
-                            return (
-                                <button type="button" key={ev.id} onClick={(e) => cambiarEvento(e, ev.id)} 
-                                    className={`w-full text-left p-4 rounded-xl border transition-all ${selectedId === ev.id ? 'bg-ls-red text-white shadow-lg scale-105' : 'bg-white hover:bg-gray-50 border-gray-200 text-gray-600'}`}>
-                                    <div className="flex justify-between items-start">
-                                        <h3 className="font-bold text-sm mb-1">{ev.nombre}</h3>
-                                        {l===t && t>0 && <i data-lucide="CheckCircle" className="text-white fill-green-500" size={16}></i>}
-                                    </div>
-                                    <div className="flex justify-between items-center text-[10px] opacity-90 mt-1">
-                                        <span>{ev.responsable}</span>
-                                        <span className={`px-2 py-0.5 rounded font-bold ${selectedId === ev.id ? 'bg-white/20' : 'bg-gray-100'}`}>{l}/{t}</span>
-                                    </div>
-                                </button>
-                            );
-                        })}
-                    </div>
-
-                    {/* Detalle */}
-                    <div className={`lg:col-span-2 bg-white p-6 rounded-2xl shadow-xl border-t-8 flex flex-col h-full overflow-hidden ${terminado ? 'border-green-500' : 'border-ls-yellow'}`}>
-                         <div className="flex justify-between items-start mb-4 border-b border-gray-100 pb-4">
-                             <div className="flex-1">
-                                 <h2 className="font-black text-2xl text-gray-800 flex items-center gap-2">
-                                     {sel.nombre}
-                                     {terminado && <span className="bg-green-100 text-green-700 text-xs px-2 py-1 rounded-full border border-green-200 uppercase font-black">¡LISTO!</span>}
-                                 </h2>
-                                 <p className="text-sm text-gray-500 flex items-center gap-2 mt-1"><i data-lucide="MapPin" size={14}></i> {sel.direccion}</p>
-                             </div>
-                             <button type="button" onClick={agregarManual} className="bg-gray-100 p-2 rounded-lg hover:bg-gray-200 text-xs font-bold flex gap-1"><i data-lucide="Plus" size={14}></i> Variable</button>
-                         </div>
-
-                         {/* BARRA DE PROGRESO */}
-                         <div className="mb-6">
-                             <div className="flex justify-between text-xs font-bold text-gray-500 mb-1 uppercase tracking-wide">
-                                 <span>Avance Producción</span>
-                                 <span className={terminado ? "text-green-600" : "text-ls-red"}>{listos} de {total} OK</span>
-                             </div>
-                             <div className="w-full bg-gray-100 rounded-full h-4 shadow-inner overflow-hidden">
-                                 <div className={`h-4 rounded-full progress-bar shadow-sm ${terminado ? 'bg-green-500' : 'bg-ls-yellow'}`} style={{width: `${porcentaje}%`}}></div>
-                             </div>
-                         </div>
-                         
-                         <div className="space-y-2 flex-1 overflow-y-auto pr-2">
-                            {sel.checklist.map(t => (
-                                <button type="button" key={t.id} onClick={() => toggle(t.id)} 
-                                    className={`w-full p-4 rounded-xl border flex justify-between items-center transition-all ${t.listo ? 'bg-green-50 border-green-500 text-green-800 shadow-inner' : 'bg-white border-gray-100 hover:border-gray-300 shadow-sm'}`}>
-                                    <span className={`text-sm font-bold ${t.listo ? 'line-through opacity-60' : 'text-gray-700'}`}>{t.tarea}</span>
-                                    {t.listo ? <i data-lucide="CheckCircle2" className="text-green-600" size={20}></i> : <div className="w-5 h-5 rounded-full border-2 border-gray-300 bg-gray-50"></div>}
-                                </button>
-                            ))}
-                         </div>
-                    </div>
-                </div>
-            )
-        }
-
-        // --- 3. SECRETARÍA ---
+        // --- SECRETARÍA ---
         function Secretaria({ onGuardar }) {
             const [form, setForm] = useState({ nombre: '', responsable: '', fecha: '', coords: null, direccion: '' });
             const mapRef = useRef(null);
@@ -342,8 +355,8 @@
             const guardar = (e) => {
                 e.preventDefault();
                 if(!form.coords) return alert("Seleccione ubicación en mapa");
-                onGuardar({ ...form, id: Date.now(), checklist: [{id:1, tarea: "Instalación Básica", listo: false}], estado: "Pendiente", lugar: "Ubicación Mapa" });
-                alert("Evento creado");
+                onGuardar({ ...form, id: Date.now(), checklist: [{id:1, tarea: "Instalación Básica", listo: false}, {id:2, tarea: "Audio", listo: false}], estado: "Pendiente", lugar: "Ubicación Mapa" });
+                alert("Evento creado exitosamente");
                 setForm({ nombre: '', responsable: '', fecha: '', coords: null, direccion: '' });
             }
             
@@ -355,25 +368,15 @@
                             <input required className="w-full p-3 bg-gray-50 border rounded-lg focus:border-ls-red outline-none" value={form.nombre} onChange={e=>setForm({...form, nombre:e.target.value})} placeholder="Nombre del Evento" />
                             <input required className="w-full p-3 bg-gray-50 border rounded-lg focus:border-ls-red outline-none" value={form.responsable} onChange={e=>setForm({...form, responsable:e.target.value})} placeholder="Responsable (Nombre)" />
                             <input type="datetime-local" required className="w-full p-3 bg-gray-50 border rounded-lg focus:border-ls-red outline-none" value={form.fecha} onChange={e=>setForm({...form, fecha:e.target.value})} />
-                            
-                            <div className="bg-blue-50 p-4 rounded-lg text-sm text-blue-800 border border-blue-100 flex items-center gap-3">
-                                <i data-lucide="MapPin" size={18}/> 
-                                <span className="font-bold">{form.direccion || "Haga clic en el mapa para definir ubicación"}</span>
-                            </div>
-                            
-                            <button type="submit" className="w-full bg-ls-red text-white font-bold py-4 rounded-xl shadow-lg hover:bg-red-800 transition flex justify-center gap-2">
-                                <i data-lucide="Save"></i> Registrar Hito
-                            </button>
+                            <div className="bg-blue-50 p-4 rounded-lg text-sm text-blue-800 border border-blue-100 flex items-center gap-3"><i data-lucide="MapPin" size={18}/> <span className="font-bold">{form.direccion || "Haga clic en el mapa para definir ubicación"}</span></div>
+                            <button type="submit" className="w-full bg-ls-red text-white font-bold py-4 rounded-xl shadow-lg hover:bg-red-800 transition flex justify-center gap-2"><i data-lucide="Save"></i> Registrar Hito</button>
                         </form>
                     </div>
-                    <div className="rounded-2xl overflow-hidden shadow-lg border border-gray-200 relative h-full">
-                        <div id="mapa-geo" className="map-mini"></div>
-                    </div>
+                    <div className="rounded-2xl overflow-hidden shadow-lg border border-gray-200 relative h-full"><div id="mapa-geo" className="map-mini"></div></div>
                 </div>
             );
         }
 
-        // ... Protocolo, Locutor, Admin (Sin cambios, ya son estables) ...
         function Protocolo({ autoridades, setAutoridades }) {
             const [filtro, setFiltro] = useState("");
             const filtrados = autoridades.filter(a => a.nombre.toLowerCase().includes(filtro.toLowerCase()) || a.cargo.toLowerCase().includes(filtro.toLowerCase()));
@@ -432,22 +435,15 @@
             const guardar = (e) => {
                 e.preventDefault();
                 let nuevo;
-                if(autoridades.find(a => a.id === form.id)) {
-                    nuevo = autoridades.map(a => a.id === form.id ? form : a);
-                } else {
-                    nuevo = [...autoridades, form];
-                }
+                if(autoridades.find(a => a.id === form.id)) { nuevo = autoridades.map(a => a.id === form.id ? form : a); } 
+                else { nuevo = [...autoridades, form]; }
                 setAutoridades(nuevo.sort((a,b)=>a.precedencia-b.precedencia));
                 setModo('lista');
             }
 
             const leerFoto = (e) => {
                 const file = e.target.files[0];
-                if(file){
-                    const reader = new FileReader();
-                    reader.onloadend = () => setForm({...form, foto: reader.result});
-                    reader.readAsDataURL(file);
-                }
+                if(file){ const reader = new FileReader(); reader.onloadend = () => setForm({...form, foto: reader.result}); reader.readAsDataURL(file); }
             }
 
             if(modo === 'editar') {
@@ -505,12 +501,7 @@
         const Wincha = ({ autoridades, eventos }) => {
             const presentes = autoridades.filter(a => a.presente);
             const activos = eventos.filter(e => e.estado === "En Desarrollo");
-            const txt = [
-                ...presentes.map(a => `🟢 ${a.cargo} ${a.nombre}`),
-                ...activos.map(e => `📢 HITO: ${e.nombre}`),
-                "☀️ Temp: 18°C", "🚧 Despliegue Operativo"
-            ].join("   |   ");
-
+            const txt = [...presentes.map(a => `🟢 ${a.cargo} ${a.nombre}`), ...activos.map(e => `📢 HITO: ${e.nombre}`), "☀️ Temp: 18°C", "🚧 Despliegue Operativo"].join("   |   ");
             return (
                 <div className="fixed bottom-0 left-0 md:left-72 right-0 bg-ls-red text-white h-8 flex items-center overflow-hidden z-50 border-t-2 border-ls-yellow">
                     <div className="bg-red-900 px-3 h-full flex items-center text-[10px] font-black uppercase z-10">En Vivo</div>
