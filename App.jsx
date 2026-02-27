@@ -1,41 +1,27 @@
 import React from 'react';
-import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import Tailwind from 'tailwindcss/tailwind.css';
-import { Lucide } from 'lucide-react';
+import { Secretario } from './modules/Secretaria';
+import { Protocolo } from './modules/Protocolo';
+import { Tecnico } from './modules/Tecnico';
+import { Prensa } from './modules/Prensa';
+import './styles/tailwind.css';
 
-// Role-based components
-import Secretaria from './views/Secretaria';
-import Protocolo from './views/Protocolo';
-import Tecnico from './views/Tecnico';
-import Prensa from './views/Prensa';
-
-// Main app component
 const App = () => {
-  // Define routes
-  const router = createBrowserRouter([
-    {
-      path: '/secretaria',
-      element: <Secretaria />,
-    },
-    {
-      path: '/protocolo',
-      element: <Protocolo />,
-    },
-    {
-      path: '/tecnico',
-      element: <Tecnico />,
-    },
-    {
-      path: '/prensa',
-      element: <Prensa />,
-    },
-  ]);
-
-  return (
-    <div className="App">
-      <RouterProvider router={router} />
-    </div>
-  );
+    return (
+        <div className="app-container">
+            <header className="header">
+                <h1 className="text-4xl font-bold text-center">S.E.R.E.N.I.T.O. System</h1>
+            </header>
+            <main className="main">
+                <Secretario />
+                <Protocolo />
+                <Tecnico />
+                <Prensa />
+            </main>
+            <footer className="footer text-center">
+                <p className="text-sm">© 2026 S.E.R.E.N.I.T.O. System</p>
+            </footer>
+        </div>
+    );
 };
 
 export default App;
